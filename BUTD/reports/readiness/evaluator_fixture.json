@@ -1,0 +1,11 @@
+{
+  "command": "",
+  "details": {},
+  "evidence": "GroundingEvaluator score-source and metadata fixture",
+  "log_path": "",
+  "name": "evaluator_fixture",
+  "return_code": null,
+  "status": "pass",
+  "summary": "GroundingEvaluator score-source and metadata fixture",
+  "timestamp": "2026-05-02T09:15:24.293768+00:00"
+}

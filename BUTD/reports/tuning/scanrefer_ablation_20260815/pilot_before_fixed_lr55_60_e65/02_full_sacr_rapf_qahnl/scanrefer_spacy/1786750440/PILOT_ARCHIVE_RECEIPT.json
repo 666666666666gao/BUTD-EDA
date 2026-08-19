@@ -1,0 +1,19 @@
+{
+  "archived_at": "2026-08-17T03:34:23+08:00",
+  "formal_protocol": {
+    "lr_decay_epochs": [
+      55,
+      60
+    ],
+    "lr_decay_rate": 0.1,
+    "max_epoch": 65,
+    "start_from_official_initialization": true
+  },
+  "job_id": "02_full_sacr_rapf_qahnl",
+  "pilot_best_epoch": 55,
+  "pilot_best_score": 0.5152503155237694,
+  "pilot_run_dir_before_move": "/home/gb/new butd/butd_detr-main/logs/butd_universal_target/scanrefer_ablation_retrain_20260814_v2_from_official_init/02_full_sacr_rapf_qahnl/scanrefer_spacy/1786750440",
+  "pilot_stop_epoch": 55,
+  "removed_pilot_checkpoint_sha256": "1904f6c2547dddf43a1d04571e3799d63fda3ded23d7ab2c13d4c1cf1c2baf5d",
+  "status": "PILOT_ARCHIVED_FORMAL_RETRAIN_REQUIRED"
+}

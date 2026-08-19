@@ -1,0 +1,11 @@
+{
+  "command": "",
+  "details": {},
+  "evidence": "Joint3DDataset positive-map fixture",
+  "log_path": "",
+  "name": "positive_map_fixture",
+  "return_code": null,
+  "status": "pass",
+  "summary": "Joint3DDataset positive-map fixture",
+  "timestamp": "2026-05-02T09:15:24.294047+00:00"
+}

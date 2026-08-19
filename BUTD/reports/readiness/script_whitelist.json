@@ -1,0 +1,16 @@
+{
+  "command": "/root/miniconda3/envs/bdetr/bin/python scripts/validate_new_method_scripts.py",
+  "details": {
+    "command": "/root/miniconda3/envs/bdetr/bin/python scripts/validate_new_method_scripts.py",
+    "log_path": "reports/readiness/script_whitelist.log",
+    "return_code": 0,
+    "summary": "validate_new_method_scripts: ok (29 active shell scripts)"
+  },
+  "evidence": "validate_new_method_scripts: ok (29 active shell scripts)",
+  "log_path": "reports/readiness/script_whitelist.log",
+  "name": "script_whitelist",
+  "return_code": 0,
+  "status": "pass",
+  "summary": "validate_new_method_scripts: ok (29 active shell scripts)",
+  "timestamp": "2026-05-02T09:15:24.292649+00:00"
+}

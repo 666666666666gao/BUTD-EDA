@@ -1,0 +1,12 @@
+{
+  "checkpoint": null,
+  "checkpoint_original": "/home/gb/new butd/butd_detr-main/logs/butd_universal_target/scanrefer_ablation_retrain_20260814_v2_from_official_init/02_full_sacr_rapf_qahnl/scanrefer_spacy/1786750440/ckpt_best_primary.pth",
+  "checkpoint_removed_after_verified_final_reload": true,
+  "checkpoint_sha256": "1904f6c2547dddf43a1d04571e3799d63fda3ded23d7ab2c13d4c1cf1c2baf5d",
+  "comparison": "strict_greater_than",
+  "epoch": 55,
+  "metric": "last__bbs_acc0.25_top1",
+  "min_delta": 0.0,
+  "mode": "max",
+  "score": 0.5152503155237694
+}

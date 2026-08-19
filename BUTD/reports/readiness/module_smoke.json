@@ -1,0 +1,11 @@
+{
+  "command": "",
+  "details": {},
+  "evidence": "logs/new_method_v2/smoke/module_smoke.log",
+  "log_path": "",
+  "name": "module_smoke",
+  "return_code": null,
+  "status": "pass",
+  "summary": "logs/new_method_v2/smoke/module_smoke.log",
+  "timestamp": "2026-05-02T09:15:24.294600+00:00"
+}

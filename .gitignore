@@ -1,0 +1,38 @@
+# Python caches and test artifacts
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Local environments and credentials
+.env
+.env.*
+!.env.example
+**/.venv/
+**/venv/
+
+# Datasets and generated experiment artifacts
+**/checkpoints/
+**/checkpoint/
+**/logs/
+**/log/
+**/outputs/
+**/tensorboard_output/
+**/wandb/
+**/*.pth
+**/*.pt
+**/*.ckpt
+
+# Native build outputs
+**/*.so
+**/*.dll
+**/*.dylib
+**/build/
+**/dist/
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

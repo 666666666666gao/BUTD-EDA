@@ -1,0 +1,50 @@
+{
+  "best_checkpoint": {
+    "comparison": "strict_greater_than",
+    "metric": "last__bbs_acc0.25_top1",
+    "min_delta": 0.0,
+    "one_weight_file_per_formal_row": true,
+    "retained_filename": "ckpt_best_primary.pth"
+  },
+  "early_stopping": false,
+  "formal_full_config_verified": {
+    "checkpoint_path": null,
+    "early_stopping": false,
+    "lr_decay_epochs": [
+      55,
+      60
+    ],
+    "max_epoch": 65
+  },
+  "formal_full_run_dir": "/home/gb/new butd/butd_detr-main/logs/butd_universal_target/scanrefer_ablation_retrain_20260814_v2_from_official_init/02_full_sacr_rapf_qahnl/scanrefer_spacy/1786908904",
+  "frozen_at": "2026-08-17T00:32:21+08:00",
+  "initialization": "/root/autodl-tmp/DATA_ROOT/gf_detector_l6o256.pth",
+  "lr_decay_epochs": [
+    55,
+    60
+  ],
+  "lr_decay_rate": 0.1,
+  "lr_scheduler": "MultiStepLR",
+  "max_epoch": 65,
+  "milestone_semantics": "decay immediately after the requested epoch final optimizer step",
+  "pilot_best_epoch": 55,
+  "pilot_best_overall_acc025": 0.5152503155237694,
+  "pilot_checkpoint_removed": true,
+  "pilot_transition_completed_at": "2026-08-17T03:34:40+08:00",
+  "resume_checkpoint": null,
+  "scope": "all nine formal independently trained ScanRefer ablation rows",
+  "seed": 0,
+  "start_epoch": 1,
+  "status": "FORMAL_FULL_RUNNING",
+  "superseded_pilot": {
+    "action": "archive logs and metrics; remove pilot weight after verified final reload; rerun Full from official initialization",
+    "close_after_complete_validation_epoch": 55,
+    "job_id": "02_full_sacr_rapf_qahnl",
+    "old_lr_decay_epochs": [
+      65
+    ],
+    "old_max_epoch": 100,
+    "paper_table_eligible": false
+  },
+  "validation_frequency_epochs": 5
+}

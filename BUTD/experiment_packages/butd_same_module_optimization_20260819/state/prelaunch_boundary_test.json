@@ -1,0 +1,13 @@
+{
+  "boundary_pass": true,
+  "checkpoint": "logs/butd_universal_target/scanrefer_ablation_retrain_20260814_v2_from_official_init/02_full_sacr_rapf_qahnl/scanrefer_spacy/1786908904/ckpt_best_primary.pth",
+  "epoch": 65,
+  "forbidden_extra_tensor_count": 0,
+  "forbidden_extra_tensors": [],
+  "required_modules_present": {
+    "QAHNL_support": true,
+    "RAPF": true,
+    "SACR": true
+  },
+  "tensor_count": 1049
+}

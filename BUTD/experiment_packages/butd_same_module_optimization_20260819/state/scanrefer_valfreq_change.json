@@ -1,0 +1,11 @@
+{
+  "applied_at": "2026-08-19T15:34:15+08:00",
+  "checkpoint_epoch": 65,
+  "module_boundary": "SACR+RAPF+QAHNL only",
+  "new_val_freq": 1,
+  "old_partial_run_removed": true,
+  "old_val_freq": 5,
+  "official_score_path": "fused",
+  "resume_script": "resume_from_scanrefer_valfreq1.sh",
+  "status": "running"
+}

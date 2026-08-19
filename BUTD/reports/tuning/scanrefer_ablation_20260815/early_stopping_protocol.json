@@ -1,0 +1,38 @@
+{
+  "best_checkpoint_policy": {
+    "comparison": "strict_greater_than",
+    "metric": "last__bbs_acc0.25_top1",
+    "min_delta": 0.0,
+    "only_one_weight_file_per_trained_row": true,
+    "retained_filename": "ckpt_best_primary.pth"
+  },
+  "current_live_row": {
+    "earliest_possible_stop_epoch_after_latest_meaningful_gain": 55,
+    "job_id": "02_full_sacr_rapf_qahnl",
+    "latest_primary_score": 0.5071518721,
+    "latest_validated_epoch_at_deployment": 35,
+    "mechanism": "external_live_process_bridge",
+    "reason": "process was already running when native early stopping was deployed",
+    "restart_required": false
+  },
+  "deployed_at": "2026-08-16T12:39:24+08:00",
+  "fairness": "identical policy for every trained ablation row",
+  "future_rows": {
+    "mechanism": "native",
+    "trainer": "main_utils.py"
+  },
+  "maximum_epoch": 100,
+  "metric_label": "official ScanRefer Overall Acc@0.25",
+  "minimum_epoch": 35,
+  "mode": "max",
+  "monitor_metric": "last__bbs_acc0.25_top1",
+  "patience_epochs_equivalent": 20,
+  "patience_validations": 4,
+  "resume_checkpoint": null,
+  "saturation_min_delta": 0.001,
+  "saturation_min_delta_percentage_points": 0.1,
+  "scope": "all nine independently trained ScanRefer ablation rows",
+  "status": "SUPERSEDED_2026_08_17_BY_FIXED_LR55_60_E65",
+  "superseded_by": "/home/gb/new butd/butd_detr-main/reports/tuning/scanrefer_ablation_20260815/fixed_lr55_60_e65_protocol.json",
+  "validation_frequency_epochs": 5
+}

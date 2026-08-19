@@ -1,0 +1,11 @@
+{
+  "command": "",
+  "details": {},
+  "evidence": "QA-HNL global-only base/fused versus structured fixture",
+  "log_path": "",
+  "name": "qahnl_global_only_fixture",
+  "return_code": null,
+  "status": "pass",
+  "summary": "QA-HNL global-only base/fused versus structured fixture",
+  "timestamp": "2026-05-02T09:15:24.294298+00:00"
+}

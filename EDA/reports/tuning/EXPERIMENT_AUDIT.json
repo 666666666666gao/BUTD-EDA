@@ -1,0 +1,37 @@
+{
+  "date": "2026-08-13",
+  "auditor": "independent-gpt-5.5-xhigh",
+  "review_type": "same-family-type-a",
+  "cross_family_type_b": false,
+  "overall_verdict": "pass",
+  "integrity_status": "pass",
+  "official_primary_metric": "last_ position alignment Top-1",
+  "semantic_alignment_role": "diagnostic_only",
+  "checks": {
+    "gt_provenance": {"status": "pass", "details": "Dataset batch labels provide GT boxes; predictions are separate."},
+    "score_normalization": {"status": "pass", "details": "Raw IoU threshold hit counts divided by GT count; no prediction max/min/mean accuracy normalization."},
+    "result_existence": {"status": "pass", "details": "Three complete logs/configs exist and exact primary numbers match the current report."},
+    "dead_code": {"status": "pass", "details": "Position evaluator is called and emits last_ position alignment; fused override is live for last_."},
+    "scope": {"status": "pass", "details": "Three full test sets, one visible seed/main run per dataset; no multi-seed robustness claim."},
+    "eval_type": {"status": "pass", "classification": {"scanrefer": "real_gt", "nr3d": "real_gt", "sr3d": "real_gt"}},
+    "innovation_boundary": {"status": "pass", "details": "SACR/RAPF/QAHNL paper boundary, compatibility-only spatial adapter, no Source-Choice in scoped code/promoted audits."}
+  },
+  "claims": [
+    {"id": "scanrefer_thresholds", "impact": "supported", "official_acc25": 0.5701514514093395, "official_acc50": 0.4523559108119478},
+    {"id": "nr3d_threshold", "impact": "supported", "official_acc25": 0.49803772629446763},
+    {"id": "sr3d_threshold", "impact": "supported", "official_acc25": 0.620658445525512},
+    {"id": "general_module_boundary", "impact": "supported_with_scope_qualifier"}
+  ],
+  "scope_qualifiers": [
+    "semantic alignment is diagnostic only",
+    "Nr3D and Sr3D are sequential one-epoch domain adaptations",
+    "single-seed/single-main-run evidence",
+    "no per-component causal claim without ablations",
+    "no multi-seed robustness claim"
+  ],
+  "evidence": {
+    "final_acceptance": "/root/autodl-tmp/eda_target/final_audit/final_acceptance.json",
+    "canonical_report": "/home/gb/new butd/butd_detr-main/EDA-master/reports/tuning/eda_scanrefer_sacr_rapf_qahnl.md",
+    "review_trace": "/home/gb/new butd/butd_detr-main/EDA-master/.aris/traces/experiment-audit/2026-08-13_run01/"
+  }
+}

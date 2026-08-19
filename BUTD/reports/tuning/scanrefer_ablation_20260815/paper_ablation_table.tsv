@@ -1,0 +1,11 @@
+group	job_id	setting	status	source_type	best_epoch	sacr	rapf	qahnl	quality	gate_supervision	relation	unique025	unique050	multiple025	multiple050	overall025	overall050
+module	01_baseline	BUTD-DETR (paper)	external_paper	paper	paper	0	0	0	0	0	0	0.842	0.663	0.466	0.351	0.522	0.398
+module	08_sacr_only	SACR only	queued	trained	-	1	0	0	0	0	1						
+module	03_no_sacr_rapf_qahnl_base	QAHNL only (base source)	training	trained	10	0	0	1	0	0	0	0.7730796335	0.4742776603	0.345160094	0.191618247	0.4090239798	0.2338031132
+module	09_sacr_qahnl	SACR + QAHNL (structured source)	queued	trained	-	1	0	1	0	0	1						
+module	04_no_qahnl	SACR + RAPF	queued	trained	-	1	1	0	1	1	1						
+module	02_full_sacr_rapf_qahnl	Full model	completed	trained	65	1	1	1	1	1	1	0.8597603946	0.6589147287	0.4810236123	0.3519594511	0.5375473286	0.3977702987
+internal	05_no_quality	Full w/o Quality	queued	trained	-	1	1	1	0	1	1						
+internal	06_no_gate_supervision	Full w/o Gate supervision	queued	trained	-	1	1	1	1	0	1						
+internal	07_no_relation	Full w/o Relation	queued	trained	-	1	1	1	1	1	0						
+internal	10_full_qahnl_base_source	Full with QAHNL base source	queued	trained	-	1	1	1	1	1	1						

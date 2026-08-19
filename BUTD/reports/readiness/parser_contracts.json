@@ -1,0 +1,44 @@
+{
+  "command": "",
+  "details": {
+    "fused_qahnl_without_rapf_fails": {
+      "expected_pass": false,
+      "returncode": 1
+    },
+    "qahnl_alias_conflict_fails": {
+      "expected_pass": false,
+      "returncode": 1
+    },
+    "qahnl_alias_equal_passes": {
+      "expected_pass": true,
+      "returncode": 0
+    },
+    "qahnl_quality_without_quality_head_fails": {
+      "expected_pass": false,
+      "returncode": 1
+    },
+    "sacr_disable_relation_with_sacr_passes": {
+      "expected_pass": true,
+      "returncode": 0
+    },
+    "sacr_disable_relation_without_sacr_fails": {
+      "expected_pass": false,
+      "returncode": 1
+    },
+    "unknown_flag_fails": {
+      "expected_pass": false,
+      "returncode": 1
+    },
+    "use_sacr_without_slots_fails": {
+      "expected_pass": false,
+      "returncode": 1
+    }
+  },
+  "evidence": "main_utils.parse_option parser contracts",
+  "log_path": "",
+  "name": "parser_contracts",
+  "return_code": null,
+  "status": "pass",
+  "summary": "main_utils.parse_option parser contracts",
+  "timestamp": "2026-05-02T09:15:24.292075+00:00"
+}

@@ -1,0 +1,25 @@
+\begin{table*}[t]
+\centering
+\caption{Dependency-aware module and internal ablations on ScanRefer. All values are percentages.}
+\label{tab:scanrefer_ablation}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccc|cc|cc|cc}
+\toprule
+Setting & SACR & RAPF & QAHNL & Quality & Gate Sup. & Relation & U@.25 & U@.50 & M@.25 & M@.50 & O@.25 & O@.50 \\
+\midrule
+BUTD-DETR (paper)$^{\ddagger}$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ & 84.20 & 66.30 & 46.60 & 35.10 & 52.20 & 39.80 \\
+SACR only & $\checkmark$ & $\times$ & $\times$ & $\times$ & $\times$ & $\checkmark$ & -- & -- & -- & -- & -- & -- \\
+QAHNL only (base source)$^{\dagger}$ & $\times$ & $\times$ & $\checkmark$ & $\times$ & $\times$ & $\times$ & 77.31 & 47.43 & 34.52 & 19.16 & 40.90 & 23.38 \\
+SACR + QAHNL (structured source) & $\checkmark$ & $\times$ & $\checkmark$ & $\times$ & $\times$ & $\checkmark$ & -- & -- & -- & -- & -- & -- \\
+SACR + RAPF & $\checkmark$ & $\checkmark$ & $\times$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & -- & -- & -- & -- & -- & -- \\
+Full model & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & 85.98 & 65.89 & 48.10 & 35.20 & 53.75 & 39.78 \\
+\midrule
+Full w/o Quality & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ & $\checkmark$ & $\checkmark$ & -- & -- & -- & -- & -- & -- \\
+Full w/o Gate supervision & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ & $\checkmark$ & -- & -- & -- & -- & -- & -- \\
+Full w/o Relation & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\times$ & -- & -- & -- & -- & -- & -- \\
+Full with QAHNL base source & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+\parbox{\textwidth}{\footnotesize $^{\ddagger}$External BUTD-DETR result from Jain et al. (ECCV 2022), which used ground-truth text labels. $^{\dagger}$Interim strict-best checkpoint; -- denotes a pending result. Trained variants use the ScanRefer spaCy protocol. RAPF requires SACR structured scores, so invalid RAPF-without-SACR combinations are excluded.}
+\end{table*}

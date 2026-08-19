@@ -1,0 +1,11 @@
+{
+  "command": "",
+  "details": {},
+  "evidence": "scripts/audit_diagnostics.py",
+  "log_path": "",
+  "name": "diagnostics_audit",
+  "return_code": null,
+  "status": "pass",
+  "summary": "scripts/audit_diagnostics.py",
+  "timestamp": "2026-05-02T09:15:24.293454+00:00"
+}

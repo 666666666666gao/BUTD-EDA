@@ -1,0 +1,10 @@
+{
+  "checkpoint": "/home/gb/new butd/butd_detr-main/logs/butd_universal_target/scanrefer_ablation_retrain_20260814_v2_from_official_init/03_no_sacr_rapf_qahnl_base/scanrefer_spacy/1787104780/ckpt_best_primary.pth",
+  "checkpoint_sha256": "0f73c1a7c40823bf63c278a4af5aeb7294b6eab9b7744c18ac446faa3052409b",
+  "epoch": 10,
+  "job_id": "03_no_sacr_rapf_qahnl_base",
+  "metric": "last__bbs_acc0.25_top1",
+  "resume_script": "/home/gb/new butd/butd_detr-main/experiment_packages/butd_same_module_optimization_20260819/resume_ablation_row03.sh",
+  "score": 0.40902397980647875,
+  "status": "resumable_pause_ready"
+}

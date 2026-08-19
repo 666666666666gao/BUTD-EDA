@@ -1,0 +1,135 @@
+{
+  "bridge_state": "completed",
+  "completed_at": "2026-08-17T03:34:23+08:00",
+  "enabled": true,
+  "final_reload_evaluation": "/home/gb/new butd/butd_detr-main/logs/butd_universal_target/scanrefer_ablation_retrain_20260814_v2_from_official_init/02_full_sacr_rapf_qahnl/scanrefer_spacy/1786750440/eval_epoch_last.log",
+  "formal_retrain_protocol": {
+    "lr_decay_epochs": [
+      55,
+      60
+    ],
+    "lr_decay_rate": 0.1,
+    "max_epoch": 65,
+    "start_from_official_initialization": true
+  },
+  "history": [
+    {
+      "epoch": 5,
+      "meaningful_improvement": true,
+      "reference_epoch": 5,
+      "reference_score": 0.3509676062,
+      "score": 0.3509676062,
+      "should_stop": false,
+      "stale_validations": 0
+    },
+    {
+      "epoch": 10,
+      "meaningful_improvement": true,
+      "reference_epoch": 10,
+      "reference_score": 0.4152292806,
+      "score": 0.4152292806,
+      "should_stop": false,
+      "stale_validations": 0
+    },
+    {
+      "epoch": 15,
+      "meaningful_improvement": true,
+      "reference_epoch": 15,
+      "reference_score": 0.4636095919,
+      "score": 0.4636095919,
+      "should_stop": false,
+      "stale_validations": 0
+    },
+    {
+      "epoch": 20,
+      "meaningful_improvement": true,
+      "reference_epoch": 20,
+      "reference_score": 0.4826461927,
+      "score": 0.4826461927,
+      "should_stop": false,
+      "stale_validations": 0
+    },
+    {
+      "epoch": 25,
+      "meaningful_improvement": true,
+      "reference_epoch": 25,
+      "reference_score": 0.4838031132,
+      "score": 0.4838031132,
+      "should_stop": false,
+      "stale_validations": 0
+    },
+    {
+      "epoch": 30,
+      "meaningful_improvement": true,
+      "reference_epoch": 30,
+      "reference_score": 0.4946360959,
+      "score": 0.4946360959,
+      "should_stop": false,
+      "stale_validations": 0
+    },
+    {
+      "epoch": 35,
+      "meaningful_improvement": true,
+      "reference_epoch": 35,
+      "reference_score": 0.5071518721,
+      "score": 0.5071518721,
+      "should_stop": false,
+      "stale_validations": 0
+    },
+    {
+      "epoch": 40,
+      "meaningful_improvement": false,
+      "reference_epoch": 35,
+      "reference_score": 0.5071518721,
+      "score": 0.504627682,
+      "should_stop": false,
+      "stale_validations": 1
+    },
+    {
+      "epoch": 45,
+      "meaningful_improvement": false,
+      "reference_epoch": 35,
+      "reference_score": 0.5071518721,
+      "score": 0.4988430795,
+      "should_stop": false,
+      "stale_validations": 2
+    },
+    {
+      "epoch": 50,
+      "meaningful_improvement": false,
+      "reference_epoch": 35,
+      "reference_score": 0.5071518721,
+      "score": 0.5075725705,
+      "should_stop": false,
+      "stale_validations": 3
+    },
+    {
+      "epoch": 55,
+      "meaningful_improvement": true,
+      "reference_epoch": 55,
+      "reference_score": 0.5152503155,
+      "score": 0.5152503155,
+      "should_stop": false,
+      "stale_validations": 0
+    }
+  ],
+  "maximum_epoch": 100,
+  "mechanism": "external_live_process_bridge",
+  "metric": "last__bbs_acc0.25_top1",
+  "min_delta": 0.001,
+  "min_epoch": 35,
+  "mode": "max",
+  "patience_validations": 4,
+  "reason": "formal_lr55_60_e65_protocol_frozen",
+  "reference_epoch": 55,
+  "reference_score": 0.5152503155,
+  "stale_validations": 0,
+  "status": "pilot_closed_for_fixed_schedule_transition",
+  "stop_epoch": 55,
+  "strict_best_checkpoint": "/home/gb/new butd/butd_detr-main/logs/butd_universal_target/scanrefer_ablation_retrain_20260814_v2_from_official_init/02_full_sacr_rapf_qahnl/scanrefer_spacy/1786750440/ckpt_best_primary.pth",
+  "strict_best_checkpoint_removed_as_nonformal_pilot": true,
+  "strict_best_checkpoint_sha256": "1904f6c2547dddf43a1d04571e3799d63fda3ded23d7ab2c13d4c1cf1c2baf5d",
+  "strict_best_epoch": 55,
+  "strict_best_score": 0.5152503155237694,
+  "validation_frequency_epochs": 5
+}

@@ -1,0 +1,28 @@
+{
+  "checks": {
+    "bash_and_dry_run_preflight": "pass",
+    "busy_gpu_fail_closed_without_screen": "pass",
+    "canonical_launcher_equivalence": "9_of_9_pass",
+    "external_baseline_registration": "pass",
+    "weight_files_in_package": 0
+  },
+  "created_at": "2026-08-17T12:27:24.584687+08:00",
+  "external_baseline_retrained": false,
+  "package": "/home/gb/new butd/butd_detr-main/experiment_packages/scanrefer_ablation_e65_20260817",
+  "protocol": {
+    "best_checkpoint_only": true,
+    "dataset": "scanrefer_spacy",
+    "early_stopping": false,
+    "lr_decay_epochs": [
+      55,
+      60
+    ],
+    "max_epoch": 65,
+    "official_init": "/root/autodl-tmp/DATA_ROOT/gf_detector_l6o256.pth",
+    "seed": 0,
+    "selection_metric": "last__bbs_acc0.25_top1",
+    "validation_frequency": 5
+  },
+  "trainable_launchers": 9,
+  "training_launched_during_packaging": false
+}
