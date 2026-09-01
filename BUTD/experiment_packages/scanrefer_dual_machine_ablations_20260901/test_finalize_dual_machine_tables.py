@@ -55,6 +55,12 @@ class FinalizeDualMachineTablesTest(unittest.TestCase):
         self.assertEqual(result["status"], "complete")
         self.assertEqual(result["machine_rows"], MACHINE_ROWS)
         self.assertTrue(result["main_monotonicity"]["overall_025_non_decreasing"])
+        self.assertIn("internal_claim_summary", result)
+        self.assertTrue(
+            result["internal_claim_summary"][
+                "sacr_all_variants_full_not_lower_overall_025"
+            ]
+        )
         for name in (
             "final_tables.json",
             "final_tables.md",

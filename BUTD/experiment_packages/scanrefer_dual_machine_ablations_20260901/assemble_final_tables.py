@@ -273,6 +273,65 @@ def markdown_table(title, rows):
     return "\n".join(lines)
 
 
+def compute_internal_effects(rows, full_row):
+    effects = {}
+    full = rows[full_row]
+    for row, metrics in rows.items():
+        if row == full_row:
+            continue
+        row_effects = {}
+        for metric in METRIC_NAMES:
+            delta = float(full[metric]) - float(metrics[metric])
+            row_effects[metric + "_full_minus_variant"] = delta
+            row_effects[metric + "_full_not_lower"] = delta >= -1e-9
+        effects[row] = row_effects
+    return effects
+
+
+def summarize_internal_claims(internal_effects):
+    summary = {}
+    for family, rows in internal_effects.items():
+        for metric in METRIC_NAMES:
+            summary[
+                "{}_all_variants_full_not_lower_{}".format(family, metric)
+            ] = all(
+                payload[metric + "_full_not_lower"] for payload in rows.values()
+            )
+    return summary
+
+
+def evidence_checks_markdown(main_monotonicity, internal_claim_summary):
+    label_map = {
+        "multiple_025": "Multiple@0.25",
+        "multiple_050": "Multiple@0.50",
+        "overall_025": "Overall@0.25",
+        "overall_050": "Overall@0.50",
+    }
+    lines = [
+        "## Evidence checks",
+        "",
+        "These checks report the observed evidence and never filter or replace a row.",
+        "",
+        "- Main Overall@0.25 non-decreasing: {}".format(
+            "yes" if main_monotonicity["overall_025_non_decreasing"] else "no"
+        ),
+        "- Main Overall@0.50 non-decreasing: {}".format(
+            "yes" if main_monotonicity["overall_050_non_decreasing"] else "no"
+        ),
+    ]
+    for family in ("sacr", "rapf"):
+        for metric in METRIC_NAMES:
+            key = "{}_all_variants_full_not_lower_{}".format(family, metric)
+            lines.append(
+                "- {} Full not lower than every variant on {}: {}".format(
+                    family.upper(),
+                    label_map[metric],
+                    "yes" if internal_claim_summary[key] else "no",
+                )
+            )
+    return "\n".join(lines)
+
+
 def assemble(
     manifest_path,
     row_paths,
@@ -323,6 +382,11 @@ def assemble(
         "R3": row_metrics(by_row["R3"]),
         "R4": full,
     }
+    internal_effects = {
+        "rapf": compute_internal_effects(rapf_internal, "R4"),
+        "sacr": compute_internal_effects(sacr_internal, "S4"),
+    }
+    internal_claim_summary = summarize_internal_claims(internal_effects)
     main_order = ("M0", "M1", "M2", "M3")
     main_monotonicity = {}
     for metric in ("overall_025", "overall_050"):
@@ -337,6 +401,8 @@ def assemble(
     result = {
         "main_modules": main_modules,
         "main_monotonicity": main_monotonicity,
+        "internal_claim_summary": internal_claim_summary,
+        "internal_effects": internal_effects,
         "new_row_count": len(payloads),
         "new_row_training_protocol": canonical_protocol,
         "new_row_provenance": {
@@ -400,6 +466,7 @@ def assemble(
             "Table 5. RAPF internal design",
             [(row, rapf_labels[row], rapf_internal[row]) for row in ("R0", "R1", "R2", "R3", "R4")],
         ),
+        evidence_checks_markdown(main_monotonicity, internal_claim_summary),
     ]
     atomic_text(output_json, json.dumps(result, indent=2, sort_keys=True) + "\n")
     atomic_text(output_markdown, "\n\n".join(sections) + "\n")

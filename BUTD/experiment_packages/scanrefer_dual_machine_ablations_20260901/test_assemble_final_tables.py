@@ -136,12 +136,35 @@ class AssembleFinalTablesTest(unittest.TestCase):
         self.assertEqual(result["main_modules"]["M3"]["overall_050"], 42.3538)
         self.assertTrue(result["main_monotonicity"]["overall_025_non_decreasing"])
         self.assertFalse(result["main_monotonicity"]["overall_050_non_decreasing"])
+        self.assertAlmostEqual(
+            result["internal_effects"]["sacr"]["S1"]["overall_025_full_minus_variant"],
+            0.4733,
+        )
+        self.assertTrue(
+            result["internal_effects"]["sacr"]["S1"]["overall_025_full_not_lower"]
+        )
+        self.assertFalse(
+            result["internal_effects"]["rapf"]["R3"]["multiple_050_full_not_lower"]
+        )
+        self.assertTrue(
+            result["internal_claim_summary"][
+                "sacr_all_variants_full_not_lower_overall_025"
+            ]
+        )
+        self.assertTrue(
+            result["internal_claim_summary"][
+                "rapf_all_variants_full_not_lower_overall_025"
+            ]
+        )
         with open(output_md, "r") as handle:
             markdown = handle.read()
         self.assertIn("## Table 3. Main modules", markdown)
         self.assertIn("| Unique@0.25 | Unique@0.50 | Multiple@0.25 | Multiple@0.50 |", markdown)
         self.assertIn("## Table 4. SACR internal design", markdown)
         self.assertIn("## Table 5. RAPF internal design", markdown)
+        self.assertIn("## Evidence checks", markdown)
+        self.assertIn("Main Overall@0.50 non-decreasing: no", markdown)
+        self.assertIn("RAPF Full not lower than every variant on Multiple@0.50: no", markdown)
         self.assertTrue(os.path.isfile(output_json))
 
     def test_writes_three_paper_ready_latex_tables_with_provenance_note(self):

@@ -163,6 +163,7 @@ def finalize(manifest_path, machine_manifest_paths, row_paths, output_dir):
                 for machine in sorted(MACHINE_ROWS)
             },
             "machine_rows": MACHINE_ROWS,
+            "internal_claim_summary": assembled["internal_claim_summary"],
             "main_monotonicity": assembled["main_monotonicity"],
             "output_sha256": output_hashes(temporary),
             "plan_manifest_sha256": sha256(manifest_path),
