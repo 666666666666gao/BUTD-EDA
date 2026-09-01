@@ -237,6 +237,10 @@ class TrainTester(BaseTrainTester):
             sacr_hidden_dim=args.sacr_hidden_dim,
             sacr_geo_dim=args.sacr_geo_dim,
             sacr_disable_relation=args.sacr_disable_relation,
+            sacr_disable_target_attr=args.sacr_disable_target_attr,
+            sacr_anchor_aggregation=args.sacr_anchor_aggregation,
+            sacr_global_residual_weight=args.sacr_global_residual_weight,
+            sacr_fixed_residual_alpha=args.sacr_fixed_residual_alpha,
             use_rapf=args.use_rapf,
             rapf_hidden_dim=args.rapf_hidden_dim,
             rapf_initial_gate_bias=args.rapf_initial_gate_bias,
@@ -246,6 +250,17 @@ class TrainTester(BaseTrainTester):
             rapf_generic_gate_cap=args.rapf_generic_gate_cap,
             rapf_quality_anchor_structured_residual=(
                 args.rapf_quality_anchor_structured_residual
+            ),
+            rapf_fixed_alpha=args.rapf_fixed_alpha,
+            rapf_disable_agreement_features=(
+                args.rapf_disable_agreement_features
+            ),
+            rapf_disable_parser_anchor_features=(
+                args.rapf_disable_parser_anchor_features
+            ),
+            rapf_disable_safety=args.rapf_disable_safety,
+            rapf_disable_residual_clipping=(
+                args.rapf_disable_residual_clipping
             ),
             use_qahnl=args.use_qahnl,
             qahnl_score_source=args.qahnl_score_source,
@@ -309,8 +324,51 @@ class TrainTester(BaseTrainTester):
             detector_policy_adapter_hidden_dim=(
                 getattr(args, 'detector_policy_adapter_hidden_dim', 32)
             ),
+            detector_policy_adapter_candidate_k=(
+                getattr(args, 'detector_policy_adapter_k', 5)
+            ),
             detector_policy_adapter_delta_scale=(
                 getattr(args, 'detector_policy_adapter_delta_scale', 0.25)
+            ),
+            detector_policy_geometry_extended_actions=getattr(
+                args, 'detector_policy_geometry_extended_actions', False
+            ),
+            detector_policy_geometry_extension_head=getattr(
+                args, 'detector_policy_geometry_extension_head', False
+            ),
+            detector_policy_rank2_rescue_head=getattr(
+                args, 'detector_policy_rank2_rescue_head', False
+            ),
+            detector_policy_rank2_override_threshold=getattr(
+                args, 'detector_policy_rank2_override_threshold', 0.0
+            ),
+            detector_policy_boundary_refiner=getattr(
+                args, 'detector_policy_boundary_refiner', False
+            ),
+            detector_policy_boundary_refiner_scale=getattr(
+                args, 'detector_policy_boundary_refiner_scale', 0.25
+            ),
+            detector_policy_tier_pair_rescue_head=getattr(
+                args, 'detector_policy_tier_pair_rescue_head', False
+            ),
+            detector_policy_tier_pair_candidate_k=getattr(
+                args, 'detector_policy_tier_pair_candidate_k', 2
+            ),
+            detector_policy_tier_pair_override_threshold=getattr(
+                args,
+                'detector_policy_tier_pair_override_threshold',
+                0.0,
+            ),
+            detector_policy_alignment_rescue_head=getattr(
+                args, 'detector_policy_alignment_rescue_head', False
+            ),
+            detector_policy_alignment_candidate_k=getattr(
+                args, 'detector_policy_alignment_candidate_k', 16
+            ),
+            detector_policy_alignment_override_threshold=getattr(
+                args,
+                'detector_policy_alignment_override_threshold',
+                0.0,
             ),
         )
         return model

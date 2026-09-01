@@ -1640,6 +1640,10 @@ class Joint3DDataset(Dataset):
             'size_gts': gt_bboxes[:, 3:].astype(np.float32),
         }
         ret_dict.update({
+            # Stable per-split dataset index.  This is intentionally scalar so
+            # default_collate preserves one ID per sample even when legacy
+            # object_id / ann_id metadata contains variable-length lists.
+            "example_id": np.int64(index),
             "scan_ids": anno['scan_id'],
             "dataset": anno.get('dataset', ''),
             "point_clouds": point_cloud.astype(np.float32),

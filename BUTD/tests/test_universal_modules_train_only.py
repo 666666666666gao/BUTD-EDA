@@ -3,7 +3,9 @@ from types import SimpleNamespace
 import torch
 
 from main_utils import (
+    _freeze_non_quality_head_parameters,
     _freeze_non_universal_module_parameters,
+    _set_non_quality_head_modules_eval,
     _set_non_universal_modules_eval,
     _should_restore_checkpoint_train_state,
 )
@@ -55,6 +57,43 @@ def test_calibration_does_not_restore_full_optimizer_state():
         eval=False,
         reduce_lr=False,
         universal_modules_train_only=True,
+        source_pool_selector_train_only=False,
+        detector_policy_adapter_train_only=False,
+        freeze_rapf=False,
+        freeze_quality_head=False,
+    )
+    assert not _should_restore_checkpoint_train_state(args, False)
+
+
+def test_quality_head_train_only_freezes_every_other_parameter():
+    model = TinyUniversalModel()
+    count = _freeze_non_quality_head_parameters(
+        SimpleNamespace(quality_head_train_only=True), model
+    )
+    assert count > 0
+    assert all(
+        param.requires_grad == name.startswith('quality_head.')
+        for name, param in model.named_parameters()
+    )
+
+
+def test_quality_head_train_only_keeps_only_quality_module_in_train_mode():
+    model = TinyUniversalModel()
+    model.train()
+    _set_non_quality_head_modules_eval(model)
+    assert not model.backbone_net.training
+    assert not model.structured_slot_builder.training
+    assert not model.sacr_head.training
+    assert not model.reliability_fusion.training
+    assert model.quality_head.training
+
+
+def test_quality_head_calibration_does_not_restore_optimizer_state():
+    args = SimpleNamespace(
+        eval=False,
+        reduce_lr=False,
+        universal_modules_train_only=False,
+        quality_head_train_only=True,
         source_pool_selector_train_only=False,
         detector_policy_adapter_train_only=False,
         freeze_rapf=False,

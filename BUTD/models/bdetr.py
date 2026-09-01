@@ -124,7 +124,12 @@ class BeaUTyDETR(nn.Module):
     @staticmethod
     def _detector_policy_target_cid(inputs):
         if bool(inputs.get('train', False)):
-            return inputs.get('target_cid', None)
+            # Detector-policy adapters must be trained with the same class
+            # signal available at deployment.  GT target_cid is teacher-only
+            # information and caused a severe train/eval protocol mismatch.
+            return inputs.get(
+                'text_target_cid', inputs.get('target_cid', None)
+            )
         source = str(inputs.get('eval_target_cid_source', 'gt')).strip().lower()
         if source == 'text':
             return inputs.get('text_target_cid', None)
@@ -165,6 +170,10 @@ class BeaUTyDETR(nn.Module):
                  sacr_hidden_dim=288,
                  sacr_geo_dim=16,
                  sacr_disable_relation=False,
+                 sacr_disable_target_attr=False,
+                 sacr_anchor_aggregation='soft',
+                 sacr_global_residual_weight=0.1,
+                 sacr_fixed_residual_alpha=None,
                  use_rapf=False,
                  rapf_hidden_dim=128,
                  rapf_initial_gate_bias=-2.0,
@@ -173,6 +182,11 @@ class BeaUTyDETR(nn.Module):
                  rapf_struct_residual_clip=2.0,
                  rapf_generic_gate_cap=0.35,
                  rapf_quality_anchor_structured_residual=False,
+                 rapf_fixed_alpha=None,
+                 rapf_disable_agreement_features=False,
+                 rapf_disable_parser_anchor_features=False,
+                 rapf_disable_safety=False,
+                 rapf_disable_residual_clipping=False,
                  use_qahnl=False,
                  qahnl_score_source='fused',
                  use_source_pool_selector=False,
@@ -195,7 +209,20 @@ class BeaUTyDETR(nn.Module):
                  use_detector_policy_teacher=False,
                  detector_policy_adapter_context=False,
                  detector_policy_adapter_hidden_dim=32,
-                 detector_policy_adapter_delta_scale=0.25):
+                 detector_policy_adapter_candidate_k=5,
+                 detector_policy_adapter_delta_scale=0.25,
+                 detector_policy_geometry_extended_actions=False,
+                 detector_policy_geometry_extension_head=False,
+                 detector_policy_rank2_rescue_head=False,
+                 detector_policy_rank2_override_threshold=0.0,
+                 detector_policy_boundary_refiner=False,
+                 detector_policy_boundary_refiner_scale=0.25,
+                 detector_policy_tier_pair_rescue_head=False,
+                 detector_policy_tier_pair_candidate_k=2,
+                 detector_policy_tier_pair_override_threshold=0.0,
+                 detector_policy_alignment_rescue_head=False,
+                 detector_policy_alignment_candidate_k=16,
+                 detector_policy_alignment_override_threshold=0.0):
         """Initialize layers."""
         super().__init__()
 
@@ -275,6 +302,9 @@ class BeaUTyDETR(nn.Module):
         self.use_detector_policy_teacher = bool(use_detector_policy_teacher)
         self.detector_policy_adapter_context = bool(
             detector_policy_adapter_context
+        )
+        self.detector_policy_alignment_rescue = bool(
+            detector_policy_alignment_rescue_head
         )
         self.source_pool_selector_text_context = bool(
             source_pool_selector_text_context
@@ -397,7 +427,41 @@ class BeaUTyDETR(nn.Module):
             DetectorPolicyAdapterHead(
                 context_dim=detector_context_dim,
                 hidden_dim=detector_policy_adapter_hidden_dim,
+                query_dim=d_model,
+                candidate_k=detector_policy_adapter_candidate_k,
                 delta_scale=detector_policy_adapter_delta_scale,
+                extended_geometry_actions=(
+                    detector_policy_geometry_extended_actions
+                ),
+                geometry_extension_head=(
+                    detector_policy_geometry_extension_head
+                ),
+                rank2_rescue_head=detector_policy_rank2_rescue_head,
+                rank2_override_threshold=(
+                    detector_policy_rank2_override_threshold
+                ),
+                boundary_refiner=detector_policy_boundary_refiner,
+                boundary_refiner_scale=(
+                    detector_policy_boundary_refiner_scale
+                ),
+                tier_pair_rescue_head=(
+                    detector_policy_tier_pair_rescue_head
+                ),
+                tier_pair_candidate_k=(
+                    detector_policy_tier_pair_candidate_k
+                ),
+                tier_pair_override_threshold=(
+                    detector_policy_tier_pair_override_threshold
+                ),
+                alignment_rescue_head=(
+                    detector_policy_alignment_rescue_head
+                ),
+                alignment_candidate_k=(
+                    detector_policy_alignment_candidate_k
+                ),
+                alignment_override_threshold=(
+                    detector_policy_alignment_override_threshold
+                ),
             )
             if self.use_detector_policy_adapter else None
         )
@@ -411,6 +475,10 @@ class BeaUTyDETR(nn.Module):
                     top_k_anchors=sacr_top_k_anchors,
                     geo_dim=sacr_geo_dim,
                     disable_relation=sacr_disable_relation,
+                    disable_target_attr=sacr_disable_target_attr,
+                    anchor_aggregation=sacr_anchor_aggregation,
+                    global_residual_weight=sacr_global_residual_weight,
+                    fixed_residual_alpha=sacr_fixed_residual_alpha,
                 ),
             )
             if use_sacr else None
@@ -427,6 +495,17 @@ class BeaUTyDETR(nn.Module):
                     residual_clip=rapf_struct_residual_clip,
                     quality_anchor_structured_residual=(
                         rapf_quality_anchor_structured_residual
+                    ),
+                    fixed_alpha=rapf_fixed_alpha,
+                    disable_agreement_features=(
+                        rapf_disable_agreement_features
+                    ),
+                    disable_parser_anchor_features=(
+                        rapf_disable_parser_anchor_features
+                    ),
+                    disable_safety=rapf_disable_safety,
+                    disable_residual_clipping=(
+                        rapf_disable_residual_clipping
                     ),
                 ),
             )
@@ -1038,6 +1117,10 @@ class BeaUTyDETR(nn.Module):
                 weak_generic_target_mask=weak_generic_mask,
             )
             end_points['structured_scores'] = sacr_out['structured_scores']
+            if sacr_out['sacr_residual_scores'] is not None:
+                end_points['sacr_residual_scores'] = (
+                    sacr_out['sacr_residual_scores']
+                )
             end_points['target_attr_scores'] = sacr_out['target_attr_scores']
             end_points['relation_anchor_scores'] = sacr_out['relation_anchor_scores']
             end_points['anchor_entropy'] = sacr_out['anchor_entropy']
@@ -1153,6 +1236,44 @@ class BeaUTyDETR(nn.Module):
             self.detector_policy_adapter is not None
             and detector_policy_features is not None
         ):
+            adapter_contrastive_scores = base_grounding_scores
+            if (
+                'positive_map' in inputs
+                and 'proj_tokens' in end_points
+                and 'last_proj_queries' in end_points
+            ):
+                adapter_contrastive_scores = compute_contrastive_token_base_scores(
+                    end_points['last_proj_queries'], end_points['proj_tokens'],
+                    inputs['positive_map'],
+                    box_label_mask=inputs.get('box_label_mask', None),
+                )
+            detector_policy_features.update({
+                'query_feats': last_query,
+                'base_scores': base_grounding_scores,
+                'structured_scores': end_points.get(
+                    'structured_scores', base_grounding_scores
+                ),
+                'fused_scores': end_points.get(
+                    'fused_scores', base_grounding_scores
+                ),
+                'contrastive_scores': adapter_contrastive_scores,
+                'det_boxes': inputs.get('det_boxes', None),
+                'det_bbox_label_mask': inputs.get(
+                    'det_bbox_label_mask', None
+                ),
+                'det_class_ids': inputs.get('det_class_ids', None),
+                'det_logits': inputs.get('det_logits', None),
+                'target_cid': detector_policy_target_cid,
+                'detected_feats': detected_feats,
+                'alignment_text_context': (
+                    self._pool_selector_text_context(
+                        end_points['text_feats'],
+                        end_points['text_attention_mask'],
+                    )
+                    if self.detector_policy_alignment_rescue
+                    else None
+                ),
+            })
             adapter_context = (
                 selector_context if self.detector_policy_adapter_context else None
             )
@@ -1162,6 +1283,91 @@ class BeaUTyDETR(nn.Module):
             )
             end_points['detector_policy_adapter_scores'] = adapter_out['scores']
             end_points['detector_policy_adapter_weights'] = adapter_out['weights']
+            if 'candidate_mask' in adapter_out:
+                end_points['detector_policy_adapter_candidate_mask'] = (
+                    adapter_out['candidate_mask']
+                )
+                end_points['detector_policy_adapter_rerank_delta'] = (
+                    adapter_out['rerank_delta']
+                )
+                end_points['detector_policy_adapter_candidate_delta'] = (
+                    adapter_out.get('candidate_delta')
+                )
+                end_points['detector_policy_adapter_hit25_logits'] = (
+                    adapter_out.get('hit25_logits')
+                )
+                end_points['detector_policy_adapter_hit50_logits'] = (
+                    adapter_out.get('hit50_logits')
+                )
+                end_points['detector_policy_adapter_rescue_logits'] = (
+                    adapter_out.get('rescue_logits')
+                )
+                end_points['detector_policy_adapter_rescue_gate'] = (
+                    adapter_out.get('rescue_gate')
+                )
+                end_points['detector_policy_adapter_rescue_query'] = (
+                    adapter_out.get('rescue_query')
+                )
+                end_points['detector_policy_adapter_fallback_query'] = (
+                    adapter_out.get('fallback_query')
+                )
+                for output_name in (
+                    'geometry_logits',
+                    'geometry_action',
+                    'geometry_alpha',
+                    'geometry_support',
+                    'geometry_enabled',
+                    'geometry_candidate_boxes',
+                    'calibrated_boxes',
+                    'pre_refined_calibrated_boxes',
+                    'boundary_refiner_raw',
+                    'boundary_refiner_delta',
+                    'rank2_logits',
+                    'rank2_candidate_mask',
+                    'rank2_candidate_boxes',
+                    'rank2_incumbent_query',
+                    'rank2_incumbent_boxes',
+                    'rank2_query',
+                    'rank2_action',
+                    'rank2_gate',
+                    'rank2_best_logit',
+                ):
+                    value = adapter_out.get(output_name, None)
+                    if value is not None:
+                        end_points[
+                            'detector_policy_adapter_' + output_name
+                        ] = value
+                for output_name in (
+                    'tier_pair_logits',
+                    'tier_pair_candidate_query',
+                    'tier_pair_incumbent_query',
+                    'tier_pair_query',
+                    'tier_pair_gate',
+                    'tier_pair_best_logit',
+                    'tier_pair_best_benefit_logit',
+                ):
+                    value = adapter_out.get(output_name, None)
+                    if value is not None:
+                        end_points[
+                            'detector_policy_' + output_name
+                        ] = value
+                for output_name in (
+                    'alignment_logits',
+                    'alignment_candidate_mask',
+                    'alignment_candidate_boxes',
+                    'alignment_incumbent_query',
+                    'alignment_incumbent_boxes',
+                    'alignment_nearest_query',
+                    'alignment_candidate',
+                    'alignment_gate',
+                    'alignment_best_logit',
+                    'alignment_best_rescue_logit',
+                ):
+                    value = adapter_out.get(output_name, None)
+                    if value is not None:
+                        end_points[
+                            'detector_policy_' + output_name
+                        ] = value
             end_points['detector_policy_adapter_prior_weights'] = (
                 self.detector_policy_adapter.prior_weights
             )

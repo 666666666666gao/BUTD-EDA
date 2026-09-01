@@ -10,12 +10,24 @@ class ReliabilityFusion(nn.Module):
     def __init__(self, hidden_dim=128, initial_gate_bias=-2.0,
                  use_quality=False, quality_weight=0.25,
                  generic_gate_cap=0.35, residual_clip=2.0,
-                 quality_anchor_structured_residual=False):
+                 quality_anchor_structured_residual=False,
+                 fixed_alpha=None, disable_agreement_features=False,
+                 disable_parser_anchor_features=False,
+                 disable_safety=False, disable_residual_clipping=False):
         super().__init__()
         self.use_quality = use_quality
         self.quality_weight = float(quality_weight)
         self.generic_gate_cap = float(generic_gate_cap)
         self.residual_clip = float(residual_clip)
+        if fixed_alpha is not None and not 0.0 <= float(fixed_alpha) <= 1.0:
+            raise ValueError("fixed_alpha must be in [0, 1] or None")
+        self.fixed_alpha = None if fixed_alpha is None else float(fixed_alpha)
+        self.disable_agreement_features = bool(disable_agreement_features)
+        self.disable_parser_anchor_features = bool(
+            disable_parser_anchor_features
+        )
+        self.disable_safety = bool(disable_safety)
+        self.disable_residual_clipping = bool(disable_residual_clipping)
         self.quality_anchor_structured_residual = bool(
             quality_anchor_structured_residual
         )
@@ -87,6 +99,7 @@ class ReliabilityFusion(nn.Module):
                 anchor_top1_mass = torch.zeros(B, device=device)
             else:
                 anchor_top1_mass = anchor_top1_mass.to(device=device).float().view(-1)[:B]
+            diagnostic_error_count = decomposition_error_flags_count
 
             if valid_query_mask is None:
                 valid_query_mask = torch.ones_like(base_scores, dtype=torch.bool)
@@ -113,10 +126,13 @@ class ReliabilityFusion(nn.Module):
                 else base_norm
             )
             raw_residual = struct_norm - residual_anchor
-            delta = raw_residual.clamp(
-                min=-self.residual_clip,
-                max=self.residual_clip,
-            )
+            if self.disable_residual_clipping:
+                delta = raw_residual
+            else:
+                delta = raw_residual.clamp(
+                    min=-self.residual_clip,
+                    max=self.residual_clip,
+                )
 
             base_probs = torch.softmax(base_norm.masked_fill(~valid_query_mask, -1e4), dim=1)
             struct_probs = torch.softmax(struct_norm.masked_fill(~valid_query_mask, -1e4), dim=1)
@@ -141,6 +157,33 @@ class ReliabilityFusion(nn.Module):
             )
             quality_max = quality_norm.max(dim=1).values
 
+            if self.disable_agreement_features:
+                base_entropy = torch.zeros_like(base_entropy)
+                base_top1_margin = torch.zeros_like(base_top1_margin)
+                top1_disagreement = torch.zeros_like(top1_disagreement)
+                js_divergence = torch.zeros_like(js_divergence)
+            if self.disable_parser_anchor_features:
+                parse_confidence = torch.zeros_like(parse_confidence)
+                decomposition_error_flags_count = torch.zeros_like(
+                    decomposition_error_flags_count
+                )
+                anchor_entropy = torch.zeros_like(anchor_entropy)
+                anchor_top1_mass = torch.zeros_like(anchor_top1_mass)
+                # Remove decomposition-state masks only from the learned gate
+                # feature vector.  Keep the original masks intact below so the
+                # global-only shutdown and weak-generic cap remain active safety
+                # constraints rather than becoming a second simultaneous
+                # ablation.
+                global_only_gate_feature = torch.zeros_like(
+                    global_only_mask, dtype=torch.float32
+                )
+                weak_generic_gate_feature = torch.zeros_like(
+                    weak_generic_target_mask, dtype=torch.float32
+                )
+            else:
+                global_only_gate_feature = global_only_mask.float()
+                weak_generic_gate_feature = weak_generic_target_mask.float()
+
             features = torch.stack([
                 base_norm,
                 struct_norm,
@@ -152,22 +195,26 @@ class ReliabilityFusion(nn.Module):
                 top1_disagreement.unsqueeze(1).expand(B, Q),
                 js_divergence.unsqueeze(1).expand(B, Q),
                 quality_max.unsqueeze(1).expand(B, Q),
-                global_only_mask.float().unsqueeze(1).expand(B, Q),
-                weak_generic_target_mask.float().unsqueeze(1).expand(B, Q),
+                global_only_gate_feature.unsqueeze(1).expand(B, Q),
+                weak_generic_gate_feature.unsqueeze(1).expand(B, Q),
                 decomposition_error_flags_count.unsqueeze(1).expand(B, Q),
                 anchor_entropy.unsqueeze(1).expand(B, Q),
                 anchor_top1_mass.unsqueeze(1).expand(B, Q),
             ], dim=-1)
-            gate = torch.sigmoid(self.gate_mlp(features).squeeze(-1))
+            if self.fixed_alpha is None:
+                gate = torch.sigmoid(self.gate_mlp(features).squeeze(-1))
+            else:
+                gate = torch.full_like(base_norm, self.fixed_alpha)
             gate = gate * structured_valid_mask.float().unsqueeze(1)
-            gate = gate.masked_fill(global_only_mask.unsqueeze(1), 0.0)
-            if self.generic_gate_cap > 0:
-                capped_gate = gate.clamp(max=self.generic_gate_cap)
-                gate = torch.where(
-                    weak_generic_target_mask.unsqueeze(1),
-                    capped_gate,
-                    gate,
-                )
+            if not self.disable_safety:
+                gate = gate.masked_fill(global_only_mask.unsqueeze(1), 0.0)
+                if self.generic_gate_cap > 0:
+                    capped_gate = gate.clamp(max=self.generic_gate_cap)
+                    gate = torch.where(
+                        weak_generic_target_mask.unsqueeze(1),
+                        capped_gate,
+                        gate,
+                    )
 
             if self.quality_anchor_structured_residual:
                 fused_scores = safe_anchor + gate * delta
@@ -184,7 +231,7 @@ class ReliabilityFusion(nn.Module):
             fused_score_floor = fused_scores.min(dim=1, keepdim=True).values
             fused_scores = fused_scores - fused_score_floor + 1e-6
 
-            error_count = decomposition_error_flags_count.view(B)[:B]
+            error_count = diagnostic_error_count.view(B)[:B]
             repaired_mask = (
                 structured_valid_mask
                 & (~global_only_mask)
@@ -201,7 +248,9 @@ class ReliabilityFusion(nn.Module):
                 base_norm.argmax(dim=1) != fused_scores.argmax(dim=1)
             ).float()
             fused_delta = fused_scores - base_norm
-            if self.residual_clip == 0:
+            if self.disable_residual_clipping:
+                residual_clip_ratio = base_scores.new_tensor(0.0)
+            elif self.residual_clip == 0:
                 residual_clip_ratio = (raw_residual.abs() > 0).float().mean()
             elif self.residual_clip > 0:
                 residual_clip_ratio = (
@@ -251,6 +300,23 @@ class ReliabilityFusion(nn.Module):
             'dbg_rapf_global_only_ratio': global_only_mask.float().mean(),
             'dbg_rapf_generic_target_ratio': weak_generic_target_mask.float().mean(),
             'dbg_rapf_quality_enabled': float(self.use_quality),
+            'dbg_rapf_fixed_fusion_enabled': float(self.fixed_alpha is not None),
+            'dbg_rapf_fixed_alpha': (
+                -1.0 if self.fixed_alpha is None else float(self.fixed_alpha)
+            ),
+            'dbg_rapf_agreement_features_disabled': float(
+                self.disable_agreement_features
+            ),
+            'dbg_rapf_parser_anchor_features_disabled': float(
+                self.disable_parser_anchor_features
+            ),
+            'dbg_rapf_parser_anchor_cues_disabled': float(
+                self.disable_parser_anchor_features
+            ),
+            'dbg_rapf_safety_disabled': float(self.disable_safety),
+            'dbg_rapf_residual_clipping_disabled': float(
+                self.disable_residual_clipping
+            ),
             'dbg_rapf_quality_anchor_enabled': float(
                 self.quality_anchor_structured_residual
             ),

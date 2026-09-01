@@ -20,6 +20,9 @@ TRAIN_ROOT = REPO / "logs/butd_universal_target/scanrefer_ablation_retrain_20260
 INIT = Path("/root/autodl-tmp/DATA_ROOT/gf_detector_l6o256.pth")
 INIT_SHA256 = "9ff3e25070bf48a0b70240e098a89be6bfd26a92af863e71698a0737fc6e54f2"
 PRIMARY = "last__bbs_acc0.25_top1"
+ROW03 = "03_no_sacr_rapf_qahnl_base"
+ROW03_RESUME_EPOCH = 10
+ROW03_SERVER_RESTART_RECOVERY_EPOCH = 15
 PAPER_BASELINE = QUEUE / "butd_paper_baseline.json"
 PAPER_METRICS = {
     "unique_acc025": 0.842,
@@ -269,6 +272,43 @@ def audit_job(job_id, expected, summary):
     for key, wanted in expected.items():
         require(cfg.get(key) == wanted, "{} ablation {}={!r}, expected {!r}".format(job_id, key, cfg.get(key), wanted))
 
+    resume_provenance = run_dir / "resume_provenance.json"
+    if job_id == ROW03:
+        require(resume_provenance.is_file(), "row03 self-resume provenance is missing")
+        resume = json.loads(resume_provenance.read_text())
+        require(resume.get("status") == "PASS", "row03 resume provenance did not pass")
+        require(resume.get("job_id") == ROW03, "row03 resume provenance job differs")
+        require(Path(resume["source_run_dir"]).resolve() == run_dir, "row03 resume source run differs")
+        require(resume.get("resume_checkpoint_epoch") == ROW03_RESUME_EPOCH, "row03 resume epoch differs")
+        require(resume.get("external_warm_start") is False, "row03 used an external warm start")
+        require(resume.get("source_started_from_official_init") is True, "row03 source did not start from official init")
+        require(resume.get("discarded_incomplete_epoch") == 11, "row03 interruption boundary differs")
+        require(resume.get("additional_same_row_resume_epochs") == [ROW03_SERVER_RESTART_RECOVERY_EPOCH], "row03 additional resume boundary differs")
+        require(resume.get("server_restart_recovery_epoch") == ROW03_SERVER_RESTART_RECOVERY_EPOCH, "row03 server-restart recovery epoch differs")
+        require(resume.get("discarded_uncheckpointed_epochs_after_server_restart") == [16, 17], "row03 replayed epochs differ")
+        require(resume.get("validation_epochs_before_resume") == [5, 10], "row03 pre-resume validations differ")
+        require(resume.get("validation_epochs_after_resume") == list(range(15, 66, 5)), "row03 post-resume validations differ")
+        require(len(resume.get("resume_checkpoint_sha256", "")) == 64, "row03 resume SHA256 is missing")
+        require(len(resume.get("server_restart_recovery_checkpoint_sha256", "")) == 64, "row03 server-restart recovery SHA256 is missing")
+        events = resume.get("resume_events")
+        require(isinstance(events, list) and len(events) == 2, "row03 must disclose both same-row resume events")
+        require(events[0].get("reason") == "planned_gpu_release", "row03 first resume reason differs")
+        require(events[0].get("checkpoint_epoch") == 10 and events[0].get("restart_epoch") == 11, "row03 first resume epochs differ")
+        require(events[0].get("discarded_incomplete_epochs") == [11], "row03 first discarded epoch differs")
+        require(events[1].get("reason") == "unexpected_server_restart", "row03 second resume reason differs")
+        require(events[1].get("checkpoint_epoch") == 15 and events[1].get("restart_epoch") == 16, "row03 server-restart epochs differ")
+        require(events[1].get("discarded_uncheckpointed_epochs") == [16, 17], "row03 server-restart replay disclosure differs")
+        require(all(event.get("external_warm_start") is False for event in events), "row03 resume event used an external warm start")
+        protocol_note = (
+            "Independently initialized from the verified official detector. "
+            "This row resumed from its own epoch-10 checkpoint after a planned GPU release, "
+            "then from its own epoch-15 checkpoint after an unexpected server restart. "
+            "Uncheckpointed epochs were replayed; no cross-row or external warm start was used."
+        )
+    else:
+        require(not resume_provenance.exists(), "unexpected resume provenance for {}".format(job_id))
+        protocol_note = "Independently retrained from the verified official initialization under the ScanRefer spaCy parsing protocol."
+
     receipt = json.loads(receipt_path.read_text())
     require(receipt.get("metric") == PRIMARY, "wrong best metric for {}".format(job_id))
     require(receipt.get("mode") == "max", "wrong best mode for {}".format(job_id))
@@ -319,7 +359,7 @@ def audit_job(job_id, expected, summary):
         "job_id": job_id,
         "source_type": "trained",
         "source_url": "",
-        "protocol_note": "Independently retrained from the verified official initialization under the ScanRefer spaCy parsing protocol.",
+        "protocol_note": protocol_note,
         "run_dir": str(run_dir),
         "best_epoch": best_epoch,
         "best_score": float(receipt["score"]),
@@ -358,7 +398,13 @@ def write_outputs(rows):
             "independent_retraining_scope": "six trained ablation variants; external paper baseline excluded",
             "external_paper_baseline": True,
             "external_paper_baseline_url": "https://arxiv.org/abs/2112.08879",
-            "resume_checkpoint": None,
+            "resume_checkpoint": {
+                "job_id": ROW03,
+                "epoch": ROW03_RESUME_EPOCH,
+                "scope": "same-row operational resume after a durable validation boundary",
+                "external_warm_start": False,
+            },
+            "additional_same_row_resume_epochs": [ROW03_SERVER_RESTART_RECOVERY_EPOCH],
             "official_initialization": str(INIT),
             "official_initialization_sha256": INIT_SHA256,
             "best_checkpoint_retained_per_row": True,
@@ -381,7 +427,7 @@ def write_outputs(rows):
         "",
         "Overall status: **PASS**",
         "",
-        "The BUTD-DETR baseline is an external ECCV 2022 paper reference and was not retrained. The other six rows were independently retrained for exactly 65 epochs with learning-rate decays after epochs 55 and 60 from the verified official initialization; no trained row used `checkpoint_path`. Validation ran every 5 epochs, only the strict maximum official BBS Acc@0.25 checkpoint was retained per trained row, its SHA256 was verified, no additional weight file remained, and final evaluation reloaded that checkpoint.",
+        "The BUTD-DETR baseline is an external ECCV 2022 paper reference and was not retrained. The other six rows were independently initialized from the verified official detector and trained for exactly 65 epochs with learning-rate decays after epochs 55 and 60. Row 03 resumed from its own epoch-10 checkpoint after a planned GPU release and from its own epoch-15 checkpoint after an unexpected server restart; incomplete or uncheckpointed work was replayed, and no cross-row or external warm start was used. Validation ran every 5 epochs, only the strict maximum official BBS Acc@0.25 checkpoint was retained per trained row, its SHA256 was verified, no additional weight file remained, and final evaluation reloaded that checkpoint.",
         "",
         "| Row | Best epoch | Overall @0.25 | Overall @0.50 | Unique @0.25 | Unique @0.50 | Multiple @0.25 | Multiple @0.50 | Delta @0.25 |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|",

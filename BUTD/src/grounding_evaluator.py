@@ -781,6 +781,7 @@ class GroundingEvaluator:
             return explicit_source
         flags = [
             ('fused', bool(end_points.get('eval_use_fused_scores', False))),
+            ('sacr_residual', bool(end_points.get('eval_use_sacr_residual_scores', False))),
             ('structured', bool(end_points.get('eval_use_structured_scores', False))),
             ('quality', bool(end_points.get('eval_use_quality_scores', False))),
             ('acd', bool(end_points.get('eval_use_acd_scores', False))),
@@ -800,6 +801,7 @@ class GroundingEvaluator:
             'base': 0.0,
             'contrastive_base': 0.0,
             'structured': 1.0,
+            'sacr_residual': 1.5,
             'quality': 2.0,
             'fused': 3.0,
             'acd': 4.0,
@@ -821,6 +823,7 @@ class GroundingEvaluator:
             return base_scores.clone()
         key_map = {
             'structured': 'structured_scores',
+            'sacr_residual': 'sacr_residual_scores',
             'quality': 'pred_iou',
             'fused': 'fused_scores',
             'contrastive_base': 'bbf_base_grounding_scores',
@@ -3853,6 +3856,20 @@ class GroundingEvaluator:
         pred_size = end_points[f'{prefix}pred_size']
         assert (pred_size < 0).sum() == 0
         pred_bbox = torch.cat([pred_center, pred_size], dim=-1)
+        if (
+            prefix == 'last_'
+            and primary_source == 'detector_policy_adapter'
+            and torch.is_tensor(end_points.get(
+                'detector_policy_adapter_calibrated_boxes', None
+            ))
+        ):
+            calibrated = end_points[
+                'detector_policy_adapter_calibrated_boxes'
+            ]
+            if calibrated.shape == pred_bbox.shape:
+                pred_bbox = calibrated.to(
+                    device=pred_bbox.device, dtype=pred_bbox.dtype
+                )
 
         for bid in range(len(positive_map)):
             pmap, gt_boxes = self._get_eval_targets(

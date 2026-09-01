@@ -56,6 +56,7 @@ def main():
     require(len(paper_rows) == 1 and paper_rows[0]["job_id"] == "01_baseline", "expected exactly one external BUTD-DETR paper baseline")
     require(len(trained_rows) == 9, "expected nine independently retrained ablation rows")
     require(len({row["run_dir"] for row in trained_rows}) == 9, "trained run directories are not independent")
+    resume_records = []
     for audit in (a1, a2):
         protocol = audit["protocol"]
         require(protocol["dataset"] == "ScanRefer only", "dataset scope differs")
@@ -65,10 +66,22 @@ def main():
         require(protocol["lr_decay_rate"] == 0.1, "LR decay rate differs")
         require(protocol["seed"] == 0, "seed differs")
         require(protocol["independent_retraining"] is True, "not independent retraining")
-        require(protocol["resume_checkpoint"] is None, "resume checkpoint found")
+        resume = protocol["resume_checkpoint"]
+        if resume is not None:
+            require(isinstance(resume, dict), "resume checkpoint declaration is malformed")
+            require(resume.get("job_id") == "03_no_sacr_rapf_qahnl_base", "unexpected resumed row")
+            require(resume.get("epoch") == 10, "unexpected resume epoch")
+            require(resume.get("external_warm_start") is False, "external warm start is forbidden")
+            resume_records.append(resume)
+        additional_resumes = protocol.get("additional_same_row_resume_epochs", [])
+        if resume is not None:
+            require(additional_resumes == [15], "server-restart same-row resume boundary differs")
+        else:
+            require(additional_resumes == [], "unexpected additional resume in extension audit")
         require(protocol["only_one_weight_file_per_row"] is True, "weight policy differs")
         require(protocol["final_evaluation_reloads_best"] is True, "final reload policy differs")
     original_protocol = a1["protocol"]
+    require(len(resume_records) == 1, "expected exactly one declared same-row operational resume")
     require(original_protocol.get("external_paper_baseline") is True, "original audit did not declare the paper baseline")
     require(original_protocol.get("independent_retraining_scope") == "six trained ablation variants; external paper baseline excluded", "original audit retraining scope differs")
     paper = paper_rows[0]

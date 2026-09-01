@@ -7,6 +7,44 @@ from models.losses import compute_hungarian_loss
 
 
 class TestQualityTopkRerankLoss(unittest.TestCase):
+    def test_logit_domain_ranking_avoids_sigmoid_gradient_attenuation(self):
+        quality_logits = torch.tensor(
+            [[-4.0, -4.2, -3.8]], requires_grad=True
+        )
+        pred_iou = torch.sigmoid(quality_logits.detach())
+        end_points = {
+            "quality_logits": quality_logits,
+            "pred_iou": pred_iou,
+            "base_grounding_scores": torch.tensor([[0.05, 0.80, 0.90]]),
+            "last_center": torch.tensor([[
+                [4.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0],
+                [0.6, 0.0, 0.0],
+            ]]),
+            "last_pred_size": torch.ones(1, 3, 3) * 2.0,
+            "center_label": torch.tensor([[[0.0, 0.0, 0.0]]]),
+            "size_gts": torch.tensor([[[2.0, 2.0, 2.0]]]),
+            "box_label_mask": torch.tensor([[1]]),
+        }
+
+        losses = _quality_topk_rerank_losses(
+            end_points,
+            weight=1.0,
+            source="base",
+            candidate_k=2,
+            margin=0.5,
+            min_iou_gap=0.01,
+            use_logits=True,
+        )
+        losses["loss_quality_topk_rerank"].backward()
+
+        self.assertGreater(losses["loss_quality_topk_rerank"].item(), 0.0)
+        self.assertLess(quality_logits.grad[0, 1].item(), 0.0)
+        self.assertGreater(quality_logits.grad[0, 2].item(), 0.0)
+        self.assertAlmostEqual(
+            losses["dbg_quality_topk_rerank_use_logits"], 1.0
+        )
+
     def test_pushes_best_iou_candidate_above_fused_topk_competitor(self):
         pred_iou = torch.tensor([[0.05, 0.10, 0.90]], requires_grad=True)
         end_points = {

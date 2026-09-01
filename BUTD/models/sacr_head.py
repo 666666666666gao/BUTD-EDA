@@ -10,7 +10,9 @@ class SACRHead(nn.Module):
 
     def __init__(self, d_model=288, hidden_dim=288,
                  top_m_targets=32, top_k_anchors=16, geo_dim=16,
-                 disable_relation=False):
+                 disable_relation=False, disable_target_attr=False,
+                 anchor_aggregation='soft', global_residual_weight=0.1,
+                 fixed_residual_alpha=None):
         super().__init__()
         if geo_dim < 0:
             raise ValueError("geo_dim must be non-negative")
@@ -21,6 +23,20 @@ class SACRHead(nn.Module):
         self.geo_dim = geo_dim
         self.use_geometry = geo_dim > 0
         self.disable_relation = bool(disable_relation)
+        self.disable_target_attr = bool(disable_target_attr)
+        if anchor_aggregation not in ('soft', 'hard'):
+            raise ValueError("anchor_aggregation must be 'soft' or 'hard'")
+        self.anchor_aggregation = anchor_aggregation
+        self.global_residual_weight = float(global_residual_weight)
+        if fixed_residual_alpha is not None and not (
+            0.0 <= float(fixed_residual_alpha) <= 1.0
+        ):
+            raise ValueError("fixed_residual_alpha must be in [0, 1] or None")
+        self.fixed_residual_alpha = (
+            None
+            if fixed_residual_alpha is None
+            else float(fixed_residual_alpha)
+        )
 
         self.target_attr_mlp = nn.Sequential(
             nn.Linear(d_model * 4, hidden_dim),
@@ -85,20 +101,28 @@ class SACRHead(nn.Module):
             valid_f = structured_valid.float().unsqueeze(1)
             weak_f = weak_generic_target_mask.float().unsqueeze(1).unsqueeze(2)
 
-            target_for_entity = target_slot.unsqueeze(1).expand(B, Q, D)
-            target_for_entity = target_for_entity * (1.0 - weak_f)
-            attr_expanded = attr_slot.unsqueeze(1).expand(B, Q, D)
             global_expanded = global_slot.unsqueeze(1).expand(B, Q, D)
-            target_attr_scores = self.target_attr_mlp(
-                torch.cat(
-                    [query_feats, target_for_entity, attr_expanded, global_expanded],
-                    dim=-1,
-                )
-            ).squeeze(-1)
-            global_scores = self.global_mlp(
-                torch.cat([query_feats, global_expanded], dim=-1)
-            ).squeeze(-1)
-            target_attr_scores = (target_attr_scores + 0.1 * global_scores) * valid_f
+            if self.disable_target_attr:
+                target_attr_scores = torch.zeros_like(base_scores)
+            else:
+                target_for_entity = target_slot.unsqueeze(1).expand(B, Q, D)
+                target_for_entity = target_for_entity * (1.0 - weak_f)
+                attr_expanded = attr_slot.unsqueeze(1).expand(B, Q, D)
+                target_attr_scores = self.target_attr_mlp(
+                    torch.cat(
+                        [query_feats, target_for_entity, attr_expanded, global_expanded],
+                        dim=-1,
+                    )
+                ).squeeze(-1)
+                if self.global_residual_weight != 0.0:
+                    global_scores = self.global_mlp(
+                        torch.cat([query_feats, global_expanded], dim=-1)
+                    ).squeeze(-1)
+                    target_attr_scores = (
+                        target_attr_scores
+                        + self.global_residual_weight * global_scores
+                    )
+                target_attr_scores = target_attr_scores * valid_f
 
             M = min(self.top_m_targets, Q)
             top_m_indices = torch.topk(base_scores + target_attr_scores, M, dim=1).indices
@@ -120,6 +144,13 @@ class SACRHead(nn.Module):
                 )
             relation_anchor_scores = relation_anchor_scores * valid_f
             structured_scores = target_attr_scores + relation_anchor_scores
+            sacr_residual_scores = None
+            if self.fixed_residual_alpha is not None:
+                sacr_residual_scores = self._fixed_residual_scores(
+                    base_scores,
+                    structured_scores,
+                    self.fixed_residual_alpha,
+                )
 
             eps = 1e-8
             anchor_entropy = -(p_anchor * (p_anchor + eps).log()).sum(dim=-1)
@@ -133,6 +164,7 @@ class SACRHead(nn.Module):
 
         return {
             'structured_scores': structured_scores,
+            'sacr_residual_scores': sacr_residual_scores,
             'target_attr_scores': target_attr_scores,
             'relation_anchor_scores': relation_anchor_scores,
             'anchor_entropy': anchor_entropy_mean,
@@ -142,6 +174,31 @@ class SACRHead(nn.Module):
             'weak_generic_target_mask': weak_generic_target_mask,
             'global_only_mask': global_only_mask,
         }
+
+    @staticmethod
+    def _normalize_scores(scores):
+        scores = torch.nan_to_num(
+            scores.float(), nan=0.0, posinf=0.0, neginf=0.0
+        )
+        centered = scores - scores.mean(dim=1, keepdim=True)
+        std = centered.pow(2).mean(dim=1, keepdim=True).clamp(
+            min=1e-6
+        ).sqrt()
+        return torch.nan_to_num(
+            centered / std, nan=0.0, posinf=0.0, neginf=0.0
+        )
+
+    @classmethod
+    def _fixed_residual_scores(cls, base_scores, structured_scores, alpha):
+        """Non-learned SACR residual injection; no RAPF parameters involved."""
+        base_norm = cls._normalize_scores(base_scores)
+        struct_norm = cls._normalize_scores(structured_scores)
+        scores = base_norm + float(alpha) * (struct_norm - base_norm)
+        scores = torch.nan_to_num(scores, nan=0.0, posinf=0.0, neginf=0.0)
+        # BBS masks unrelated objects by multiplication with zero. Preserve
+        # ranking while keeping every valid source score strictly positive.
+        floor = scores.min(dim=1, keepdim=True).values
+        return scores - floor + 1e-6
 
     def _relation_anchor_scores(self, query_feats, pred_boxes, top_m_indices,
                                 rel_slots, anchor_slots, slot_mask):
@@ -157,7 +214,12 @@ class SACRHead(nn.Module):
         ).reshape(B, K, Q)
         top_anc_indices = torch.topk(anchor_scores_all, K_anc, dim=2).indices
         top_anc_scores = torch.gather(anchor_scores_all, 2, top_anc_indices)
-        p_anchor = F.softmax(top_anc_scores, dim=2)
+        soft_anchor = F.softmax(top_anc_scores, dim=2)
+        if self.anchor_aggregation == 'hard':
+            hard_index = soft_anchor.argmax(dim=2, keepdim=True)
+            p_anchor = torch.zeros_like(soft_anchor).scatter_(2, hard_index, 1.0)
+        else:
+            p_anchor = soft_anchor
 
         tgt_feats = torch.gather(
             query_feats, 1, top_m_indices.unsqueeze(-1).expand(B, M, D)

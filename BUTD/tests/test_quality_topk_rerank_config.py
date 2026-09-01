@@ -23,6 +23,7 @@ class TestQualityTopkRerankConfig(unittest.TestCase):
             "0.07",
             "--quality_topk_rerank_min_iou_gap",
             "0.03",
+            "--quality_topk_rerank_use_logits",
         ]
         with mock.patch.object(sys, "argv", argv):
             args = parse_option()
@@ -32,6 +33,7 @@ class TestQualityTopkRerankConfig(unittest.TestCase):
         self.assertEqual(args.quality_topk_rerank_k, 5)
         self.assertEqual(args.quality_topk_rerank_margin, 0.07)
         self.assertEqual(args.quality_topk_rerank_min_iou_gap, 0.03)
+        self.assertTrue(args.quality_topk_rerank_use_logits)
 
     def test_parser_accepts_source_pool_quality_topk_rerank_source(self):
         argv = [

@@ -1,0 +1,46 @@
+--- src/grounding_evaluator.py
++++ src/grounding_evaluator.py
+@@ -4069,6 +4069,43 @@
+                             diagnostic_ious[source] = self._record_diagnostic(
+                                 source, prefix, diag_scores, gt_boxes, pred_bbox[bid]
+                             )
++                    rapf_grid_fields = (
++                        'rapf_base_norm', 'rapf_gate', 'rapf_delta',
++                        'rapf_quality_norm',
++                    )
++                    if all(field in end_points for field in rapf_grid_fields):
++                        rapf_base = end_points['rapf_base_norm'][bid].float()
++                        rapf_gate = end_points['rapf_gate'][bid].float()
++                        rapf_delta = end_points['rapf_delta'][bid].float()
++                        rapf_quality = end_points['rapf_quality_norm'][bid].float()
++                        for quality_weight in (
++                            0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35,
++                            0.40, 0.50, 0.75, 1.00, 1.25, 1.50, 2.00,
++                        ):
++                            query_scores = (
++                                rapf_base + rapf_gate * rapf_delta
++                                + quality_weight * rapf_quality
++                            )
++                            query_scores = (
++                                query_scores - query_scores.min() + 1e-6
++                            )
++                            grid_scores = base_scores.clone()
++                            if num_obj > 0:
++                                grid_scores[0] = query_scores
++                            source = 'rapf_qw_{:03d}'.format(
++                                int(round(quality_weight * 100.0))
++                            )
++                            diagnostic_scores[source] = grid_scores
++                            diagnostic_ious[source] = self._record_diagnostic(
++                                source, prefix, grid_scores, gt_boxes,
++                                pred_bbox[bid]
++                            )
++                    for source in DETECTOR_POLICY_SCORE_KEYS:
++                        if source in diagnostic_scores:
++                            diagnostic_ious[source] = self._record_diagnostic(
++                                source, prefix, diagnostic_scores[source],
++                                gt_boxes, pred_bbox[bid]
++                            )
+                     if not detector_focused:
+                         target_semantic_scores = self._target_semantic_scores(
+                             end_points, prefix, bid, num_obj, base_scores,
