@@ -60,7 +60,7 @@ identities.
 
 - `collect_completed_row.py` SHA256: `ad5da503a1bc91ef1fdffd85ebdb563b36d412b2b4e242cb8c935e70d82cdcfc`
 - `test_collect_completed_row.py` SHA256: `5de71d67b4c72e8c3efed2d217d8b5165fcf6b7b94c24026b0548611b4e52fab`
-- `assemble_final_tables.py` SHA256: `7d7651f720fd80446845d9c1d9efcfdc81c9860154349eef8cb977e47572183c`
-- `test_assemble_final_tables.py` SHA256: `6168bcba85088da57486612cf6f32350092e304b0446a4f3be475575b54d77b9`
+- `assemble_final_tables.py` SHA256: `065d3988a0b55a20f151e1a6398fa239ced01889360e7695df41c62604fc1b17`
+- `test_assemble_final_tables.py` SHA256: `df36c21393c0e435177fefd825b7bcb0ffbef88971fb59775195459788b96e08`
 - `wait_and_collect_machine_rows.sh` SHA256: `4bbc1def7a5ec869035032248a7e98de43a46f53d69769da3f004ca511e6cda3`
 - `start_machine_result_watcher.sh` SHA256: `e0e0129658b8ee9e9f258d8525e7f37895237f3bd4d1219fc982c93b52bb2974`

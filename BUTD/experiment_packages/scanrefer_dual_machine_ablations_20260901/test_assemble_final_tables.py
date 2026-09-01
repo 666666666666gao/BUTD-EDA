@@ -16,11 +16,39 @@ class AssembleFinalTablesTest(unittest.TestCase):
     def make_fixture(self):
         temporary = tempfile.TemporaryDirectory()
         manifest = {
-            "baseline": {"overall_025": 50.42, "overall_050": 38.6},
+            "baseline": {
+                "unique_025": 82.88,
+                "unique_050": 64.98,
+                "multiple_025": 44.73,
+                "multiple_050": 33.97,
+                "overall_025": 50.42,
+                "overall_050": 38.6,
+            },
             "main_rows": {
-                "M1": {"overall_025": 50.8309, "overall_050": 37.4632},
-                "M2": {"overall_025": 53.5654, "overall_050": 40.1662},
-                "M3": {"overall_025": 54.9011, "overall_050": 42.3538},
+                "M1": {
+                    "unique_025": 81.5363,
+                    "unique_050": 62.0155,
+                    "multiple_025": 45.4444,
+                    "multiple_050": 33.1561,
+                    "overall_025": 50.8309,
+                    "overall_050": 37.4632,
+                },
+                "M2": {
+                    "unique_025": 84.2847,
+                    "unique_050": 65.1868,
+                    "multiple_025": 48.1765,
+                    "multiple_050": 35.7770,
+                    "overall_025": 53.5654,
+                    "overall_050": 40.1662,
+                },
+                "M3": {
+                    "unique_025": 87.0,
+                    "unique_050": 69.0,
+                    "multiple_025": 49.0,
+                    "multiple_050": 37.0,
+                    "overall_025": 54.9011,
+                    "overall_050": 42.3538,
+                },
             },
             "matched_internal_full": {
                 "overall_025": 53.7547,
@@ -90,9 +118,12 @@ class AssembleFinalTablesTest(unittest.TestCase):
         self.assertEqual(result["sacr_internal"]["S2"]["overall_025"], 51.1)
         self.assertEqual(result["rapf_internal"]["R3"]["multiple_050"], 35.6)
         self.assertEqual(result["main_modules"]["M3"]["overall_050"], 42.3538)
+        self.assertTrue(result["main_monotonicity"]["overall_025_non_decreasing"])
+        self.assertFalse(result["main_monotonicity"]["overall_050_non_decreasing"])
         with open(output_md, "r") as handle:
             markdown = handle.read()
         self.assertIn("## Table 3. Main modules", markdown)
+        self.assertIn("| Unique@0.25 | Unique@0.50 | Multiple@0.25 | Multiple@0.50 |", markdown)
         self.assertIn("## Table 4. SACR internal design", markdown)
         self.assertIn("## Table 5. RAPF internal design", markdown)
         self.assertTrue(os.path.isfile(output_json))

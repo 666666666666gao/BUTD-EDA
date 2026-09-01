@@ -105,8 +105,20 @@ def assemble(manifest_path, row_paths, output_json, output_markdown):
         "R3": row_metrics(by_row["R3"]),
         "R4": full,
     }
+    main_order = ("M0", "M1", "M2", "M3")
+    main_monotonicity = {}
+    for metric in ("overall_025", "overall_050"):
+        values = [float(main_modules[row][metric]) for row in main_order]
+        main_monotonicity[metric + "_values"] = values
+        main_monotonicity[metric + "_deltas"] = [
+            values[index] - values[index - 1] for index in range(1, len(values))
+        ]
+        main_monotonicity[metric + "_non_decreasing"] = all(
+            values[index] >= values[index - 1] for index in range(1, len(values))
+        )
     result = {
         "main_modules": main_modules,
+        "main_monotonicity": main_monotonicity,
         "new_row_count": len(payloads),
         "new_row_training_protocol": canonical_protocol,
         "new_row_provenance": {
@@ -123,8 +135,8 @@ def assemble(manifest_path, row_paths, output_json, output_markdown):
     main_lines = [
         "## Table 3. Main modules",
         "",
-        "| ID | Setting | Overall@0.25 | Overall@0.50 |",
-        "|---|---|---:|---:|",
+        "| ID | Setting | Unique@0.25 | Unique@0.50 | Multiple@0.25 | Multiple@0.50 | Overall@0.25 | Overall@0.50 |",
+        "|---|---|---:|---:|---:|---:|---:|---:|",
     ]
     main_labels = {
         "M0": "BUTD-DETR paper baseline",
@@ -135,9 +147,13 @@ def assemble(manifest_path, row_paths, output_json, output_markdown):
     for row in ("M0", "M1", "M2", "M3"):
         values = main_modules[row]
         main_lines.append(
-            "| {} | {} | {} | {} |".format(
+            "| {} | {} | {} | {} | {} | {} | {} | {} |".format(
                 row,
                 main_labels[row],
+                format_value(values["unique_025"]),
+                format_value(values["unique_050"]),
+                format_value(values["multiple_025"]),
+                format_value(values["multiple_050"]),
                 format_value(values["overall_025"]),
                 format_value(values["overall_050"]),
             )

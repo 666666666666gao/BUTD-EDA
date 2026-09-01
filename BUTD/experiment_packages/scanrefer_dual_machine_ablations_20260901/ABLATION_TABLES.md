@@ -5,12 +5,12 @@ with its actual fixed calibration provenance.
 
 ## Table 3. Main modules
 
-| ID | Setting | SACR | RAPF | QAHNL | Overall@0.25 | Overall@0.50 | Evidence |
-|---|---|:---:|:---:|:---:|---:|---:|---|
-| M0 | BUTD-DETR paper baseline | | | | 50.42 | 38.60 | external paper value |
-| M1 | + SACR | yes | | | 50.8309 | 37.4632 | audited E65 checkpoint |
-| M2 | + RAPF | yes | yes | | 53.5654 | 40.1662 | audited strict-best E60 checkpoint |
-| M3 | + QAHNL + fixed calibration | yes | yes | yes | 54.9011 | 42.3538 | Stage154, two sources + selector |
+| ID | Setting | SACR | RAPF | QAHNL | Unique@0.25 | Unique@0.50 | Multiple@0.25 | Multiple@0.50 | Overall@0.25 | Overall@0.50 | Evidence |
+|---|---|:---:|:---:|:---:|---:|---:|---:|---:|---:|---:|---|
+| M0 | BUTD-DETR paper baseline | | | | 82.88 | 64.98 | 44.73 | 33.97 | 50.42 | 38.60 | frozen external value, two-decimal report |
+| M1 | + SACR | yes | | | 81.5363 | 62.0155 | 45.4444 | 33.1561 | 50.8309 | 37.4632 | audited E65 checkpoint |
+| M2 | + RAPF | yes | yes | | 84.2847 | 65.1868 | 48.1765 | 35.7770 | 53.5654 | 40.1662 | audited strict-best E60 checkpoint |
+| M3 | + QAHNL + fixed calibration | yes | yes | yes | 87.3855 | 70.2607 | 49.2026 | 37.4583 | 54.9011 | 42.3538 | Stage154, two sources + locked selector |
 
 ## Table 4. SACR internal design
 

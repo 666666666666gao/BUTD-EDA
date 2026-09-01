@@ -4,6 +4,11 @@
   "seed_policy": "seed0_only_no_replication",
   "baseline": {
     "source": "published_BUTD_DETR_not_retrained",
+    "protocol_note": "current frozen external baseline; the older 52.2/39.8 GT-text-label protocol is not used in this table",
+    "unique_025": 82.88,
+    "unique_050": 64.98,
+    "multiple_025": 44.73,
+    "multiple_050": 33.97,
     "overall_025": 50.42,
     "overall_050": 38.60
   },
@@ -34,9 +39,15 @@
       "status": "reuse_stage154_without_retraining",
       "label": "full_plus_fixed_source_selection_calibration",
       "single_checkpoint": false,
+      "unique_025": 87.3855,
+      "unique_050": 70.2607,
+      "multiple_025": 49.2026,
+      "multiple_050": 37.4583,
       "overall_025": 54.9011,
       "overall_050": 42.3538,
-      "validation_result_sha256": "983b74dd3dfb816992ffe8a854c9428836721620d52b24c6693e2d3ab653f816"
+      "validation_result_sha256": "983b74dd3dfb816992ffe8a854c9428836721620d52b24c6693e2d3ab653f816",
+      "subgroup_report_sha256": "0107cae5799360a92f429411b208cadee33475200db51281596b7cbaba8fb544",
+      "subgroup_source_manifest_sha256": "8268e8d0dd3ec69239eb6d0d7ced28892bc3c88adf71d42b38536d013c2126db"
     }
   },
   "matched_internal_full": {
