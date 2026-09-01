@@ -51,6 +51,12 @@ Once all seven new row JSON files exist, `assemble_final_tables.py` combines
 them with the audited M0--M3, S1 and matched-Full records in
 `plan_manifest.json`. It accepts exactly `S0,S2,S3,R0,R1,R2,R3`, requires a
 common protocol and distinct checkpoint identities, and atomically emits the
-final three-table JSON and Markdown files. The separate monitor package starts
-server-local completion watchers so these audits happen only after each
-machine writes `ALL_COMPLETE`.
+final three-table JSON and Markdown files. Passing
+`--output-latex-dir <directory>` additionally creates three standalone,
+paper-ready LaTeX tables plus a combined include file. The LaTeX renderer
+validates the published M0 source, the audited M1/M2 checkpoint identities, and
+the non-single-checkpoint Stage154 provenance before writing any table. Its
+two-column compile regression checks that the generated tables have no
+overfull horizontal boxes when LaTeX is available. The separate monitor
+package starts server-local completion watchers so these audits happen only
+after each machine writes `ALL_COMPLETE`.
