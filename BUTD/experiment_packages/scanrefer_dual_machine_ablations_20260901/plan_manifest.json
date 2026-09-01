@@ -8,8 +8,28 @@
     "overall_050": 38.60
   },
   "main_rows": {
-    "M1": {"status": "reuse_audited", "overall_025": 50.8309, "overall_050": 37.4632},
-    "M2": {"status": "reuse_audited_strict_best_E60", "overall_025": 53.5654, "overall_050": 40.1662},
+    "M1": {
+      "status": "reuse_audited",
+      "best_epoch": 65,
+      "checkpoint_sha256": "1755763652c71ab37f157e92c14c3b07b54701a7ff26ce650154f3e9b09e23b2",
+      "unique_025": 81.5363,
+      "unique_050": 62.0155,
+      "multiple_025": 45.4444,
+      "multiple_050": 33.1561,
+      "overall_025": 50.8309,
+      "overall_050": 37.4632
+    },
+    "M2": {
+      "status": "reuse_audited_strict_best_E60",
+      "best_epoch": 60,
+      "checkpoint_sha256": "589c054db24c7dc61702924fc5f6c0c1454bbb5359bb742a1f001569cf6c7229",
+      "unique_025": 84.2847,
+      "unique_050": 65.1868,
+      "multiple_025": 48.1765,
+      "multiple_050": 35.7770,
+      "overall_025": 53.5654,
+      "overall_050": 40.1662
+    },
     "M3": {
       "status": "reuse_stage154_without_retraining",
       "label": "full_plus_fixed_source_selection_calibration",
@@ -21,12 +41,26 @@
   },
   "matched_internal_full": {
     "status": "reuse_audited",
+    "unique_025": 85.9760,
+    "unique_050": 65.8915,
+    "multiple_025": 48.1024,
+    "multiple_050": 35.1959,
     "overall_025": 53.7547,
     "overall_050": 39.7770,
     "checkpoint_sha256": "f12c34ce2a94c43694759101c4f5b5c9c43eb5b639787e818df8a5072dfa0ee4"
   },
   "reused_internal_rows": {
-    "S1": {"overall_025": 53.2814, "overall_050": 39.7665}
+    "S1": {
+      "status": "reuse_audited_strict_best_E65",
+      "best_epoch": 65,
+      "checkpoint_sha256": "c1d6d995b239b2147b3df81f0dc46682d7a5136d3f3616bf498d345d58da69fe",
+      "unique_025": 84.4961,
+      "unique_050": 65.6801,
+      "multiple_025": 47.8057,
+      "multiple_050": 35.2207,
+      "overall_025": 53.2814,
+      "overall_050": 39.7665
+    }
   },
   "new_rows": {
     "machine35608": ["S2", "S0", "S3"],

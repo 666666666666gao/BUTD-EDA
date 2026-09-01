@@ -39,3 +39,18 @@ bash start_machine_queue.sh machine50630 R1 R3 R0 R2
 
 The queues write machine-local status and SHA256 receipts under
 `/root/autodl-tmp/logs/butd_scanrefer_dual_machine_ablations_20260901/`.
+
+## Fail-closed final table audit
+
+After a queue finishes, run `collect_completed_row.py` against each receipt.
+The collector only writes a row JSON after verifying the single retained
+strict-best checkpoint and SHA256, the fixed protocol, all official BBS keys,
+the Unique/Multiple sample and weighted-Overall contracts, and reload parity.
+
+Once all seven new row JSON files exist, `assemble_final_tables.py` combines
+them with the audited M0--M3, S1 and matched-Full records in
+`plan_manifest.json`. It accepts exactly `S0,S2,S3,R0,R1,R2,R3`, requires a
+common protocol and distinct checkpoint identities, and atomically emits the
+final three-table JSON and Markdown files. The separate monitor package starts
+server-local completion watchers so these audits happen only after each
+machine writes `ALL_COMPLETE`.

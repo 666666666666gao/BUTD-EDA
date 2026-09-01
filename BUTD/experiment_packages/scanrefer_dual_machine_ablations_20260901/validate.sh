@@ -13,6 +13,16 @@ export PYTHONPATH="${REPO_ROOT}:${REPO_ROOT}/pointnet2"
 bash -n "${PACKAGE_ROOT}/run_machine_queue.sh"
 bash -n "${PACKAGE_ROOT}/start_machine_queue.sh"
 "${PYTHON}" -m json.tool "${PACKAGE_ROOT}/plan_manifest.json" >/dev/null
+"${PYTHON}" -m py_compile \
+  "${PACKAGE_ROOT}/collect_completed_row.py" \
+  "${PACKAGE_ROOT}/assemble_final_tables.py" \
+  "${PACKAGE_ROOT}/test_collect_completed_row.py" \
+  "${PACKAGE_ROOT}/test_assemble_final_tables.py"
+(
+  cd "${PACKAGE_ROOT}"
+  PYTHONDONTWRITEBYTECODE=1 "${PYTHON}" -W error::ResourceWarning -m unittest -v \
+    test_collect_completed_row.py test_assemble_final_tables.py
+)
 [ -f "${BASE_PACKAGE}/launch/run_row.sh" ]
 bash "${BASE_PACKAGE}/validate.sh"
 
