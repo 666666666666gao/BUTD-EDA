@@ -60,3 +60,20 @@ two-column compile regression checks that the generated tables have no
 overfull horizontal boxes when LaTeX is available. The separate monitor
 package starts server-local completion watchers so these audits happen only
 after each machine writes `ALL_COMPLETE`.
+
+## Atomic two-machine finalization
+
+After copying both `MACHINE_RESULTS_READY` files and all seven audited row JSON
+files into one consolidation host, run `finalize_dual_machine_tables.py`. It
+verifies each marker's fixed machine-to-row assignment and every declared row
+SHA256 before invoking the table assembler. The command refuses to overwrite
+an existing output directory and only publishes the bundle after JSON,
+Markdown, all LaTeX tables, and a `FINAL_TABLES_RECEIPT.json` provenance record
+have been written successfully. A failed check leaves no partial final output.
+
+```bash
+python finalize_dual_machine_tables.py plan_manifest.json FINAL_TABLE_BUNDLE \
+  --machine-manifest machine35608_MACHINE_RESULTS_READY \
+  --machine-manifest machine50630_MACHINE_RESULTS_READY \
+  S2.json S0.json S3.json R1.json R3.json R0.json R2.json
+```

@@ -91,9 +91,18 @@ rows, false reload parity, duplicate checkpoint identities, missing M0--M2
 provenance, and any M3 record that is not the audited non-single-checkpoint
 Stage154 fixed calibration result.
 
+`finalize_dual_machine_tables.py` is the final consolidation gate. Given both
+copied `MACHINE_RESULTS_READY` markers and the seven row JSON files, it verifies
+the fixed machine-to-row assignments and every marker-declared SHA256, then
+atomically publishes JSON, Markdown, the four LaTeX files and
+`FINAL_TABLES_RECEIPT.json`. It refuses an existing output directory and leaves
+no partial bundle after a failed check.
+
 - `collect_completed_row.py` SHA256: `ad5da503a1bc91ef1fdffd85ebdb563b36d412b2b4e242cb8c935e70d82cdcfc`
 - `test_collect_completed_row.py` SHA256: `5de71d67b4c72e8c3efed2d217d8b5165fcf6b7b94c24026b0548611b4e52fab`
 - `assemble_final_tables.py` SHA256: `d4d33737bd9abf761665fe2837eeb508c81b99ef9b6070cb906ae84c935d8e43`
 - `test_assemble_final_tables.py` SHA256: `6a66ca52ffecd0d2e9065d7eb629355b54edfd2f9fbe6f935842deedf74f94db`
+- `finalize_dual_machine_tables.py` SHA256: `fe2094c130586eddad5e8619a06b4d199407d44c2a1f5b653ab1b91ae6842f2e`
+- `test_finalize_dual_machine_tables.py` SHA256: `9a2f80ed383173651ae8b1230fc5309c560f027ad0b629e0700980f7243f5706`
 - `wait_and_collect_machine_rows.sh` SHA256: `4bbc1def7a5ec869035032248a7e98de43a46f53d69769da3f004ca511e6cda3`
 - `start_machine_result_watcher.sh` SHA256: `e0e0129658b8ee9e9f258d8525e7f37895237f3bd4d1219fc982c93b52bb2974`
