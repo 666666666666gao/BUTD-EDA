@@ -1,0 +1,51 @@
+{
+  "date": "2026-08-25",
+  "dataset": "scanrefer_spacy",
+  "seed_policy": "seed0_only_no_replication",
+  "baseline": {
+    "source": "published_BUTD_DETR_not_retrained",
+    "unique_025": 82.88,
+    "unique_050": 64.98,
+    "multiple_025": 44.73,
+    "multiple_050": 33.97,
+    "overall_025": 50.42,
+    "overall_050": 38.60
+  },
+  "main_full": {
+    "role": "M3 optimized upper boundary",
+    "reused_without_retraining": true,
+    "rapf_quality_weight": 0.25,
+    "overall_025": 54.3962978544,
+    "overall_050": 39.9032393379,
+    "checkpoint_sha256": "a60000dfc1163b4b80ef51b68d8fd985448f3604d319891146edd8640e31b8d1"
+  },
+  "matched_protocol_full": {
+    "role": "S4/R4 fixed-protocol internal control",
+    "reused_without_retraining": true,
+    "rapf_quality_weight": 0.75,
+    "overall_025": 53.7547328565,
+    "overall_050": 39.77702987,
+    "checkpoint_sha256": "f12c34ce2a94c43694759101c4f5b5c9c43eb5b639787e818df8a5072dfa0ee4"
+  },
+  "unique_table_configurations": 13,
+  "trainable_seed0_configurations": 10,
+  "frozen_order": ["M1", "M2", "S1", "S2", "S0", "S3", "R1", "R3", "R0", "R2"],
+  "reused_from_old_queue": ["S1"],
+  "main_receipts_from_monotonic_queue": ["M1", "M2"],
+  "new_internal_queue_rows": ["S2", "S0", "S3", "R1", "R3", "R0", "R2"],
+  "main_training_protocol": {
+    "maximum_epoch": 75,
+    "lr_decay_epochs": [60, 70],
+    "dense_validation_epochs": [55, 62],
+    "m2_rapf_quality_weight": 0.25
+  },
+  "internal_training_protocol": {
+    "maximum_epoch": 65,
+    "lr_decay_epochs": [55, 60],
+    "validation_frequency": 5,
+    "rapf_quality_weight": 0.75
+  },
+  "estimated_hours_per_internal_run": [44, 46],
+  "estimated_completion_window": "2026-09-13 through 2026-09-15; recovery allowance 2026-09-18 through 2026-09-21",
+  "notes": "Single A100 serial execution. Baseline, both retained Full checkpoints, and multi-seed replication are excluded from new training."
+}

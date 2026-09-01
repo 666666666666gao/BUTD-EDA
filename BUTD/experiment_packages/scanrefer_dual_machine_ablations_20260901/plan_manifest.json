@@ -1,0 +1,51 @@
+{
+  "date": "2026-09-01",
+  "dataset": "scanrefer_spacy",
+  "seed_policy": "seed0_only_no_replication",
+  "baseline": {
+    "source": "published_BUTD_DETR_not_retrained",
+    "overall_025": 50.42,
+    "overall_050": 38.60
+  },
+  "main_rows": {
+    "M1": {"status": "reuse_audited", "overall_025": 50.8309, "overall_050": 37.4632},
+    "M2": {"status": "reuse_audited_strict_best_E60", "overall_025": 53.5654, "overall_050": 40.1662},
+    "M3": {
+      "status": "reuse_stage154_without_retraining",
+      "label": "full_plus_fixed_source_selection_calibration",
+      "single_checkpoint": false,
+      "overall_025": 54.9011,
+      "overall_050": 42.3538,
+      "validation_result_sha256": "983b74dd3dfb816992ffe8a854c9428836721620d52b24c6693e2d3ab653f816"
+    }
+  },
+  "matched_internal_full": {
+    "status": "reuse_audited",
+    "overall_025": 53.7547,
+    "overall_050": 39.7770,
+    "checkpoint_sha256": "f12c34ce2a94c43694759101c4f5b5c9c43eb5b639787e818df8a5072dfa0ee4"
+  },
+  "reused_internal_rows": {
+    "S1": {"overall_025": 53.2814, "overall_050": 39.7665}
+  },
+  "new_rows": {
+    "machine35608": ["S2", "S0", "S3"],
+    "machine50630": ["R1", "R3", "R0", "R2"]
+  },
+  "training_protocol": {
+    "initialization": "/root/autodl-tmp/DATA_ROOT/gf_detector_l6o256.pth",
+    "seed": 0,
+    "batch_size": 24,
+    "maximum_epoch": 65,
+    "validation_frequency": 5,
+    "lr": 0.0001,
+    "lr_backbone": 0.001,
+    "lr_decay_epochs": [55, 60],
+    "checkpoint_metric": "last__bbs_acc0.25_top1",
+    "retain": "strict_best_only"
+  },
+  "warm_start_decision": {
+    "formal_rows_use_warm_start": false,
+    "reason": "Full-to-ablation warm start leaks removed-module training into shared weights and Stage154 is not a single checkpoint."
+  }
+}
